@@ -8,7 +8,185 @@
 
 import Foundation
 
-public class BMLConnector {
+public enum BMLMode {
+
+    case BMLDevelopmentMode
+    case BMLProductionMode
+}
+
+public enum BMLResourceType : String, StringLiteralConvertible {
     
-    public 
+    case File = "file"
+    case Source = "source"
+    case Dataset = "dataset"
+    case Model = "model"
+    case Cluster = "cluster"
+    case Anomaly = "anomaly"
+    case Prediction = "prediction"
+    case Project = "project"
+    case InvalidType = ""
+    
+    static let all = [File, Source, Dataset, Model, Cluster, Anomaly, Prediction, Project]
+
+    public init(stringLiteral value: String) {
+        switch (value) {
+        case "file":
+            self = File
+        case "source":
+            self = Source
+        case "dataset":
+            self = Dataset
+        case "model":
+            self = Model
+        case "cluster":
+            self = Cluster
+        case "Prediction":
+            self = Prediction
+        case "anomaly":
+            self = Anomaly
+        case "project":
+            self = Project
+        default:
+            self = InvalidType
+        }
+    }
+    
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self = BMLResourceType(stringLiteral:value)
+    }
+    
+    public init(unicodeScalarLiteral value: String) {
+        self = BMLResourceType(stringLiteral:value)
+    }
+}
+
+public class BMLResource : NSObject {
+    
+    public var name : String
+    public var type : BMLResourceType
+    public var uuid : String
+    public var fullUuid : String {
+        get {
+            return "\(type.rawValue)/\(uuid)"
+        }
+    }
+    
+    public init(name: String, type: BMLResourceType, uuid: String) {
+        
+        self.name = name
+        self.type = type
+        self.uuid = uuid
+    }
+}
+
+public class BMLConnector : NSObject {
+    
+    let username : String
+    let apiKey : String
+    let mode : BMLMode
+    let authToken : String
+    
+    lazy var session: NSURLSession = self.initializeSession()
+    
+    public init(username: String, apiKey: String, mode:BMLMode) {
+        
+        self.username = username
+        self.apiKey = apiKey
+        self.mode = mode
+        self.authToken = "?username=\(username);api_key=\(apiKey);"
+        
+        super.init()
+    }
+    
+    func initializeSession() -> NSURLSession {
+        
+        let configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration()
+        configuration.HTTPAdditionalHeaders = [ "Content-Type": "application/json" ];
+
+        return NSURLSession(configuration : configuration)
+    }
+    
+    func dataWithRequest(request : NSURLRequest, completion:(result : AnyObject?, error : NSError?) -> Void) {
+        
+        let task = self.session.dataTaskWithRequest(request) { (data : NSData!, response : NSURLResponse!, error : NSError!) in
+            if (error == nil) {
+                if let response = response as? NSHTTPURLResponse {
+                    var error : NSError? = nil;
+                    let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&error)
+                    if let jsonArray = jsonObject as? [AnyObject] {
+                        
+                    } else if let jsonDict = jsonObject as? [String : AnyObject] {
+                        
+                    }
+                    println("RESPONSE: \(jsonObject)")
+                }
+            } else {
+                
+                println("ERROR: \(error)")
+            }
+            var result = []
+            completion(result: result, error: error)
+        }
+        task.resume()
+    }
+    
+    func getURL(url : NSURL, completion:(result : AnyObject?, error : NSError?) -> Void) {
+        
+        //        UIApplication.sharedApplication().networkActivityIndicatorVisible = true;
+        self.dataWithRequest(NSMutableURLRequest(URL:url)) { (result, error) in
+            completion(result: result, error: error)
+        }
+    }
+    
+    func postURL(url : NSURL, body: NSData, completion:(result : AnyObject?, error : NSError?) -> Void) {
+        
+        println("URL \(url)")
+        let request = NSMutableURLRequest(URL:url)
+        request.HTTPBody = body
+        request.HTTPMethod = "POST";
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+
+        self.dataWithRequest(request) { (result, error) in
+            completion(result: result, error: error)
+        }
+    }
+    
+    func authenticateUrl(uri : String) -> NSURL? {
+        
+        return NSURL(string:"https://bigml.io/dev/andromeda/\(uri)\(self.authToken)")
+    }
+    
+    public func createResource(
+        type: BMLResourceType,
+        name: String,
+        options: [String : String],
+        from: BMLResource,
+        completion:(resource : BMLResource?, error : NSError?) -> Void) {
+
+            let body : [String : String] = [
+                from.type.rawValue : from.fullUuid,
+                "name" : name
+            ]
+            var error : NSError?
+            if let bodyData = NSJSONSerialization.dataWithJSONObject(body, options: nil, error:&error) {
+                if let url = self.authenticateUrl(type.rawValue) {
+                    self.postURL(url, body: bodyData) { (result, error) in
+                        let resource = BMLResource(name: name, type: type, uuid: "")
+                        completion(resource : resource, error : nil)
+                    }
+                }
+            }
+    }
+
+    public func listResources(
+        type: BMLResourceType,
+        completion:(resources : [BMLResource], error : NSError?) -> Void) {
+            
+            if let url = self.authenticateUrl(type.rawValue) {
+                self.getURL(url) { (result, error) in
+                    completion(resources : [], error : nil)
+                }
+            }
+    }
+
 }
