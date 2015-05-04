@@ -101,7 +101,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func teistCreateDataset() {
+    func testCreateDataset() {
         
         self.runTest("testCreateDataset") { (exp) in
             let resource = BMLResource( name:"provaSwift", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
@@ -112,7 +112,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func teistListDataset() {
+    func testListDataset() {
         
         self.runTest("testListDataset") { (exp) in
             let resource = BMLResource( name:"provaSwift", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")

@@ -15,6 +15,15 @@ extension NSError {
     }
 }
 
+extension NSMutableData {
+    
+    func appendString(string: String) {
+        if let data = string.dataUsingEncoding(NSUTF8StringEncoding) {
+            self.appendData(data)
+        }
+    }
+}
+
 public enum BMLMode {
 
     case BMLDevelopmentMode
@@ -169,16 +178,16 @@ public class BMLConnector : NSObject {
         let bodyData : NSMutableData = NSMutableData()
         for (name, value) in body {
             if (count(value) > 0) {
-                bodyData.appendData("\r\n--\(boundary)\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
-                bodyData.appendData("Content-Disposition: form-data; name=\"\(name)\"\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
-                bodyData.appendData("\r\n\(value)".dataUsingEncoding(NSUTF8StringEncoding)!)
+                bodyData.appendString("\r\n--\(boundary)\r\n")
+                bodyData.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n")
+                bodyData.appendString("\r\n\(value)")
             }
         }
-        bodyData.appendData("\r\n--\(boundary)\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
-        bodyData.appendData("Content-Disposition: form-data; name=\"userfile\"; filename=\"\(filename)\"\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
-        bodyData.appendData("Content-Type: application/octet-stream\r\n\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
+        bodyData.appendString("\r\n--\(boundary)\r\n")
+        bodyData.appendString("Content-Disposition: form-data; name=\"userfile\"; filename=\"\(filename)\"\r\n")
+        bodyData.appendString("Content-Type: application/octet-stream\r\n\r\n")
         bodyData.appendData(NSData(contentsOfFile:filePath)!)
-        bodyData.appendData("\r\n--\(boundary)--\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
+        bodyData.appendString("\r\n--\(boundary)--\r\n")
         
         request.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField:"Content-Type")
         request.HTTPBody = bodyData
@@ -201,10 +210,6 @@ public class BMLConnector : NSObject {
         from: BMLResource,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
 
-            let body : [String : String] = [
-                from.type.rawValue : from.fullUuid,
-                "name" : name,
-            ]
             if let url = self.authenticatedUrl(type.rawValue) {
                 
                 let completionBlock : (result : AnyObject?, error : NSError?) -> Void = { (result, error) in
@@ -222,6 +227,10 @@ public class BMLConnector : NSObject {
                     
                 } else {
 
+                    let body : [String : String] = [
+                        from.type.rawValue : from.fullUuid,
+                        "name" : name,
+                    ]
                     self.post(url, body: body, completion: completionBlock)
                 }
             }
