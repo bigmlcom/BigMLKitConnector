@@ -119,6 +119,9 @@ public class BMLConnector : NSObject {
                         
                     }
                     println("RESPONSE: \(jsonObject)")
+                    if (jsonObject["code"] != 201) {
+                        error = NSError(code:-1, message:"")
+                    }
                 }
             } else {
                 
@@ -130,28 +133,57 @@ public class BMLConnector : NSObject {
         task.resume()
     }
     
-    func getURL(url : NSURL, completion:(result : AnyObject?, error : NSError?) -> Void) {
+    func get(url : NSURL, completion:(result : AnyObject?, error : NSError?) -> Void) {
         
-        //        UIApplication.sharedApplication().networkActivityIndicatorVisible = true;
         self.dataWithRequest(NSMutableURLRequest(URL:url)) { (result, error) in
             completion(result: result, error: error)
         }
     }
     
-    func postURL(url : NSURL, body: NSData, completion:(result : AnyObject?, error : NSError?) -> Void) {
+    func post(url : NSURL, body: [String : String], completion:(result : AnyObject?, error : NSError?) -> Void) {
         
-        println("URL \(url)")
+        var error : NSError? = nil
+        if let bodyData = NSJSONSerialization.dataWithJSONObject(body, options: nil, error:&error) {
+            let request = NSMutableURLRequest(URL:url)
+            request.HTTPBody = bodyData
+            request.HTTPMethod = "POST";
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+            
+            self.dataWithRequest(request) { (result, error) in
+                completion(result: result, error: error)
+            }
+        }
+    }
+    
+    func upload(url : NSURL, filename: String, filePath: String, body: [String : String], completion:(result : AnyObject?, error : NSError?) -> Void) {
+        
         let request = NSMutableURLRequest(URL:url)
-        request.HTTPBody = body
+        let boundary = "---------------------------14737809831466499882746641449"
+
+        let bodyData : NSMutableData = NSMutableData()
+        for (name, value) in body {
+            if (count(value) > 0) {
+                bodyData.appendData("\r\n--\(boundary)\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
+                bodyData.appendData("Content-Disposition: form-data; name=\"\(name)\"\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
+                bodyData.appendData("\r\n\(value)".dataUsingEncoding(NSUTF8StringEncoding)!)
+            }
+        }
+        bodyData.appendData("\r\n--\(boundary)\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
+        bodyData.appendData("Content-Disposition: form-data; name=\"userfile\"; filename=\"\(filename)\"\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
+        bodyData.appendData("Content-Type: application/octet-stream\r\n\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
+        bodyData.appendData(NSData(contentsOfFile:filePath)!)
+        bodyData.appendData("\r\n--\(boundary)--\r\n".dataUsingEncoding(NSUTF8StringEncoding)!)
+        
+        request.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField:"Content-Type")
+        request.HTTPBody = bodyData
         request.HTTPMethod = "POST";
-        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
 
         self.dataWithRequest(request) { (result, error) in
             completion(result: result, error: error)
         }
     }
     
-    func authenticateUrl(uri : String) -> NSURL? {
+    func authenticatedUrl(uri : String) -> NSURL? {
         
         return NSURL(string:"https://bigml.io/dev/andromeda/\(uri)\(self.authToken)")
     }
@@ -165,15 +197,22 @@ public class BMLConnector : NSObject {
 
             let body : [String : String] = [
                 from.type.rawValue : from.fullUuid,
-                "name" : name
+                "name" : name,
             ]
-            var error : NSError?
-            if let bodyData = NSJSONSerialization.dataWithJSONObject(body, options: nil, error:&error) {
-                if let url = self.authenticateUrl(type.rawValue) {
-                    self.postURL(url, body: bodyData) { (result, error) in
-                        let resource = BMLResource(name: name, type: type, uuid: "")
-                        completion(resource : resource, error : nil)
-                    }
+            if let url = self.authenticatedUrl(type.rawValue) {
+                
+                let completionBlock : (result : AnyObject?, error : NSError?) -> Void = { (result, error) in
+                    let resource = BMLResource(name: name, type: type, uuid: "")
+                    completion(resource : resource, error : nil)
+                }
+                
+                if (from.type == BMLResourceType.File) {
+                    
+                    self.upload(url, filename:name, filePath:from.uuid, body: [String : String](), completion: completionBlock)
+                    
+                } else {
+
+                    self.post(url, body: body, completion: completionBlock)
                 }
             }
     }
@@ -182,8 +221,8 @@ public class BMLConnector : NSObject {
         type: BMLResourceType,
         completion:(resources : [BMLResource], error : NSError?) -> Void) {
             
-            if let url = self.authenticateUrl(type.rawValue) {
-                self.getURL(url) { (result, error) in
+            if let url = self.authenticatedUrl(type.rawValue) {
+                self.get(url) { (result, error) in
                     completion(resources : [], error : nil)
                 }
             }

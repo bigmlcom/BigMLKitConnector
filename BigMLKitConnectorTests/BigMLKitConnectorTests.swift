@@ -11,16 +11,34 @@ import XCTest
 
 import BigMLKitConnector
 
+extension NSBundle {
+    
+    class func pathForResource(resource : String) -> String? {
+        
+        for bundle in NSBundle.allBundles() {
+            if let filePath = bundle.pathForResource(resource, ofType:.None) {
+                return filePath
+            }
+        }
+        return nil
+    }
+    
+//    class func dictionaryWithContentsOfFile(filename : String) -> NSDictionary {
+//        
+//        for bundle in NSBundle.allBundles() {
+//            if let  f = bundle.pathForResource("credentials", ofType:"plist") {
+//                return NSDictionary.init(contentsOfFile:f)!
+//            }
+//        }
+//        return NSDictionary()
+//    }
+}
+
 @objc class BigMLKitTestCredentials {
     
     class func credentials() -> NSDictionary {
-
-        for bundle in NSBundle.allBundles() {
-            if let  f = bundle.pathForResource("credentials", ofType:"plist") {
-                return NSDictionary.init(contentsOfFile:f)!
-            }
-        }
-        return ["username" : "bad", "apiKey" : "bad"]
+        return NSDictionary.init(contentsOfFile:NSBundle.pathForResource("credentials.plist")!)!
+//        return NSBundle.dictionaryWithContentsOfFile("credentials.plist")
     }
     
     class func username() -> String {
@@ -57,27 +75,38 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
 
-    func testCreateDataset() {
+    func testCreateDatasource() {
+        
+        self.runTest("testCreateDatasource") { (exp) in
+            
+            let filePath = NSBundle.pathForResource("iris.csv")
+            let resource = BMLResource( name:"testCreateDatasource", type:BMLResourceType.File, uuid:filePath!)
+            self.connector.createResource(BMLResourceType.Dataset, name: "provaDatasource", options: ["" : ""], from: resource) { (resource, error) -> Void in
+                exp.fulfill()
+                XCTAssert(resource != nil && error == nil, "Pass")
+            }
+        }
+    }
+    
+    func teistCreateDataset() {
         
         self.runTest("testCreateDataset") { (exp) in
             let resource = BMLResource( name:"provaSwift", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
             self.connector.createResource(BMLResourceType.Dataset, name: "provaDataset", options: ["" : ""], from: resource) { (resource, error) -> Void in
-                println("HERE WE ARE")
                 exp.fulfill()
+                XCTAssert(resource != nil && error == nil, "Pass")
             }
-            XCTAssert(true, "Pass")
         }
     }
     
-    func testListDataset() {
+    func teistListDataset() {
         
         self.runTest("testListDataset") { (exp) in
             let resource = BMLResource( name:"provaSwift", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
             self.connector.listResources(BMLResourceType.Dataset) { (resource, error) -> Void in
-                println("HERE WE ARE")
                 exp.fulfill()
+                XCTAssert(error == nil, "Pass")
             }
-            XCTAssert(true, "Pass")
         }
     }
     

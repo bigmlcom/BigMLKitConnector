@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		492DC2A31AF75AEB0053F908 /* credentials.plist in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A21AF75AEB0053F908 /* credentials.plist */; };
+		492DC2A71AF786120053F908 /* wines.csv in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A41AF786120053F908 /* wines.csv */; };
+		492DC2A81AF786120053F908 /* iris.csv in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A51AF786120053F908 /* iris.csv */; };
+		492DC2A91AF786120053F908 /* diab.csv in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A61AF786120053F908 /* diab.csv */; };
 		49C5AA741AEF943800B81AA6 /* BigMLKitConnector.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C5AA731AEF943800B81AA6 /* BigMLKitConnector.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		49C5AA7A1AEF943900B81AA6 /* BigMLKitConnector.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49C5AA6E1AEF943800B81AA6 /* BigMLKitConnector.framework */; };
 		49C5AA811AEF943900B81AA6 /* BigMLKitConnectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C5AA801AEF943900B81AA6 /* BigMLKitConnectorTests.swift */; };
@@ -26,6 +29,9 @@
 
 /* Begin PBXFileReference section */
 		492DC2A21AF75AEB0053F908 /* credentials.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = credentials.plist; sourceTree = "<group>"; };
+		492DC2A41AF786120053F908 /* wines.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wines.csv; path = ../../../../../../Desktop/wines.csv; sourceTree = "<group>"; };
+		492DC2A51AF786120053F908 /* iris.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = iris.csv; path = ../../../../../../Desktop/iris.csv; sourceTree = "<group>"; };
+		492DC2A61AF786120053F908 /* diab.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = diab.csv; path = ../../../../../../Desktop/diab.csv; sourceTree = "<group>"; };
 		49C5AA6E1AEF943800B81AA6 /* BigMLKitConnector.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BigMLKitConnector.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		49C5AA721AEF943800B81AA6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		49C5AA731AEF943800B81AA6 /* BigMLKitConnector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BigMLKitConnector.h; sourceTree = "<group>"; };
@@ -103,6 +109,9 @@
 		49C5AA7E1AEF943900B81AA6 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				492DC2A41AF786120053F908 /* wines.csv */,
+				492DC2A51AF786120053F908 /* iris.csv */,
+				492DC2A61AF786120053F908 /* diab.csv */,
 				49C5AA7F1AEF943900B81AA6 /* Info.plist */,
 			);
 			name = "Supporting Files";
@@ -206,6 +215,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				492DC2A31AF75AEB0053F908 /* credentials.plist in Resources */,
+				492DC2A71AF786120053F908 /* wines.csv in Resources */,
+				492DC2A91AF786120053F908 /* diab.csv in Resources */,
+				492DC2A81AF786120053F908 /* iris.csv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
