@@ -11,12 +11,37 @@ import XCTest
 
 import BigMLKitConnector
 
+@objc class BigMLKitTestCredentials {
+    
+    class func credentials() -> NSDictionary {
+
+        for bundle in NSBundle.allBundles() {
+            if let  f = bundle.pathForResource("credentials", ofType:"plist") {
+                return NSDictionary.init(contentsOfFile:f)!
+            }
+        }
+        return ["username" : "bad", "apiKey" : "bad"]
+    }
+    
+    class func username() -> String {
+        return self.credentials()["username"] as! String
+    }
+    
+    class func apiKey() -> String {
+        return self.credentials()["apiKey"] as! String
+    }
+}
+
 class BigMLKitConnectorTests: XCTestCase {
+    
+    var connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.BMLDevelopmentMode)
+    
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
+
+        self.connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.BMLDevelopmentMode)
+}
     
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
@@ -35,9 +60,8 @@ class BigMLKitConnectorTests: XCTestCase {
     func testCreateDataset() {
         
         self.runTest("testCreateDataset") { (exp) in
-            let connector = BMLConnector(username:"", apiKey:"", mode:BMLMode.BMLDevelopmentMode)
             let resource = BMLResource( name:"provaSwift", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
-            connector.createResource(BMLResourceType.Dataset, name: "provaDataset", options: ["" : ""], from: resource) { (resource, error) -> Void in
+            self.connector.createResource(BMLResourceType.Dataset, name: "provaDataset", options: ["" : ""], from: resource) { (resource, error) -> Void in
                 println("HERE WE ARE")
                 exp.fulfill()
             }
@@ -48,9 +72,8 @@ class BigMLKitConnectorTests: XCTestCase {
     func testListDataset() {
         
         self.runTest("testListDataset") { (exp) in
-            let connector = BMLConnector(username:"", apiKey:"", mode:BMLMode.BMLDevelopmentMode)
             let resource = BMLResource( name:"provaSwift", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
-            connector.listResources(BMLResourceType.Dataset) { (resource, error) -> Void in
+            self.connector.listResources(BMLResourceType.Dataset) { (resource, error) -> Void in
                 println("HERE WE ARE")
                 exp.fulfill()
             }
