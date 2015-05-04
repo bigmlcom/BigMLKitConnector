@@ -8,6 +8,13 @@
 
 import Foundation
 
+extension NSError {
+    
+    convenience init(code: Int, message: String) {
+        self.init(domain: "BigMLKitConnector", code: code, userInfo: ["message" : message])
+    }
+}
+
 public enum BMLMode {
 
     case BMLDevelopmentMode
@@ -109,18 +116,17 @@ public class BMLConnector : NSObject {
     func dataWithRequest(request : NSURLRequest, completion:(result : AnyObject?, error : NSError?) -> Void) {
         
         let task = self.session.dataTaskWithRequest(request) { (data : NSData!, response : NSURLResponse!, error : NSError!) in
+            var error : NSError? = error;
             if (error == nil) {
                 if let response = response as? NSHTTPURLResponse {
-                    var error : NSError? = nil;
                     let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&error)
-                    if let jsonArray = jsonObject as? [AnyObject] {
-                        
-                    } else if let jsonDict = jsonObject as? [String : AnyObject] {
-                        
-                    }
-                    println("RESPONSE: \(jsonObject)")
-                    if (jsonObject["code"] != 201) {
-                        error = NSError(code:-1, message:"")
+                    if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
+                        if (code != 201) {
+                            error = NSError(code: code, message: jsonDict["status"]!.description)
+                        }
+                    } else {
+                        error = NSError(code:-10001, message:"Bad response format")
+                        //                    println("RESPONSE: \(jsonObject)")
                     }
                 }
             } else {
@@ -202,8 +208,12 @@ public class BMLConnector : NSObject {
             if let url = self.authenticatedUrl(type.rawValue) {
                 
                 let completionBlock : (result : AnyObject?, error : NSError?) -> Void = { (result, error) in
-                    let resource = BMLResource(name: name, type: type, uuid: "")
-                    completion(resource : resource, error : nil)
+                    
+                    var resource : BMLResource?
+                    if (error == nil) {
+                        resource = BMLResource(name: name, type: type, uuid: "")
+                    }
+                    completion(resource : resource, error : error)
                 }
                 
                 if (from.type == BMLResourceType.File) {
