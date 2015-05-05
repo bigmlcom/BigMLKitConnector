@@ -68,7 +68,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
 
-    func testCreateDatasource() {
+    func teistCreateDatasource() {
         
         self.runTest("testCreateDatasource") { (exp) in
             
@@ -81,7 +81,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func testCreateDatasourceFail() {
+    func teistCreateDatasourceFail() {
         
         self.runTest("testCreateDatasourceFail") { (exp) in
             
@@ -94,7 +94,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func testCreateDataset() {
+    func teistCreateDataset() {
         
         self.runTest("testCreateDataset") { (exp) in
             let resource = BMLMinimalResource( name:"testCreateDataset", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
@@ -105,7 +105,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func testCreateDatasetFromCSVFail() {
+    func teistCreateDatasetFromCSVFail() {
         
         self.runTest("testCreateDatasetFromCSVFail") { (exp) in
             let resource = BMLMinimalResource( name:"testCreateDatasetFromCSVFail", type:BMLResourceType.File, uuid:NSBundle.pathForResource("iris.csv")!)
@@ -116,12 +116,23 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func testListDataset() {
+    func teistListDataset() {
         
         self.runTest("testListDataset") { (exp) in
-            let resource = BMLMinimalResource( name:"provaSwift", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
             self.connector.listResources(BMLResourceType.Dataset) { (resource, error) -> Void in
                 exp.fulfill()
+                println("RESOURCE \(resource)")
+                XCTAssert(error == nil, "Pass")
+            }
+        }
+    }
+    
+    func testGetDataset() {
+        
+        self.runTest("testGetDataset") { (exp) in
+            self.connector.getResource(BMLResourceType.Source, uuid: "5540b821c0eea909d0000525") { (resource, error) -> Void in
+                exp.fulfill()
+                println("RESOURCE \(resource)")
                 XCTAssert(error == nil, "Pass")
             }
         }
