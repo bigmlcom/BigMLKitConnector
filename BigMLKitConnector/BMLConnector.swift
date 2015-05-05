@@ -233,6 +233,7 @@ public class BMLConnector : NSObject {
                 
                 if (from.type == BMLResourceType.File) {
                     
+//                    assert(type == BMLResourceType.Source, "Attempting to create a \(type.rawValue) from a CSV File.")
                     self.upload(url, filename:name, filePath:from.uuid, body: [String : String](), completion: completionBlock)
                     
                 } else {

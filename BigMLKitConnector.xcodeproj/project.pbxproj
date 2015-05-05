@@ -11,6 +11,7 @@
 		492DC2A71AF786120053F908 /* wines.csv in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A41AF786120053F908 /* wines.csv */; };
 		492DC2A81AF786120053F908 /* iris.csv in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A51AF786120053F908 /* iris.csv */; };
 		492DC2A91AF786120053F908 /* diab.csv in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A61AF786120053F908 /* diab.csv */; };
+		492DC2AD1AF8B8A60053F908 /* BMLSigHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */; };
 		49C5AA741AEF943800B81AA6 /* BigMLKitConnector.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C5AA731AEF943800B81AA6 /* BigMLKitConnector.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		49C5AA7A1AEF943900B81AA6 /* BigMLKitConnector.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49C5AA6E1AEF943800B81AA6 /* BigMLKitConnector.framework */; };
 		49C5AA811AEF943900B81AA6 /* BigMLKitConnectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C5AA801AEF943900B81AA6 /* BigMLKitConnectorTests.swift */; };
@@ -32,6 +33,9 @@
 		492DC2A41AF786120053F908 /* wines.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wines.csv; path = ../../../../../../Desktop/wines.csv; sourceTree = "<group>"; };
 		492DC2A51AF786120053F908 /* iris.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = iris.csv; path = ../../../../../../Desktop/iris.csv; sourceTree = "<group>"; };
 		492DC2A61AF786120053F908 /* diab.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = diab.csv; path = ../../../../../../Desktop/diab.csv; sourceTree = "<group>"; };
+		492DC2AA1AF8B8A50053F908 /* BigMLKitConnectorTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BigMLKitConnectorTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BMLSigHandler.c; sourceTree = "<group>"; };
+		492DC2AC1AF8B8A60053F908 /* BMLSigHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BMLSigHandler.h; sourceTree = "<group>"; };
 		49C5AA6E1AEF943800B81AA6 /* BigMLKitConnector.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BigMLKitConnector.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		49C5AA721AEF943800B81AA6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		49C5AA731AEF943800B81AA6 /* BigMLKitConnector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BigMLKitConnector.h; sourceTree = "<group>"; };
@@ -102,6 +106,9 @@
 				49C5AA801AEF943900B81AA6 /* BigMLKitConnectorTests.swift */,
 				49C5AA7E1AEF943900B81AA6 /* Supporting Files */,
 				492DC2A21AF75AEB0053F908 /* credentials.plist */,
+				492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */,
+				492DC2AC1AF8B8A60053F908 /* BMLSigHandler.h */,
+				492DC2AA1AF8B8A50053F908 /* BigMLKitConnectorTests-Bridging-Header.h */,
 			);
 			path = BigMLKitConnectorTests;
 			sourceTree = "<group>";
@@ -236,6 +243,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				492DC2AD1AF8B8A60053F908 /* BMLSigHandler.c in Sources */,
 				49C5AA811AEF943900B81AA6 /* BigMLKitConnectorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -350,6 +358,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = BigMLKitConnector/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -367,6 +376,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = BigMLKitConnector/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -376,6 +386,7 @@
 		49C5AA881AEF943900B81AA6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -387,12 +398,15 @@
 				INFOPLIST_FILE = BigMLKitConnectorTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "BigMLKitConnectorTests/BigMLKitConnectorTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		49C5AA891AEF943900B81AA6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -400,6 +414,7 @@
 				INFOPLIST_FILE = BigMLKitConnectorTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "BigMLKitConnectorTests/BigMLKitConnectorTests-Bridging-Header.h";
 			};
 			name = Release;
 		};

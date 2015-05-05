@@ -22,16 +22,6 @@ extension NSBundle {
         }
         return nil
     }
-    
-//    class func dictionaryWithContentsOfFile(filename : String) -> NSDictionary {
-//        
-//        for bundle in NSBundle.allBundles() {
-//            if let  f = bundle.pathForResource("credentials", ofType:"plist") {
-//                return NSDictionary.init(contentsOfFile:f)!
-//            }
-//        }
-//        return NSDictionary()
-//    }
 }
 
 @objc class BigMLKitTestCredentials {
@@ -50,6 +40,8 @@ extension NSBundle {
     }
 }
 
+//let signalHandler = CFunctionPointer<((Int32) -> Void)>(COpaquePointer(UnsafePointer<(Int32)->Void>(sigHandler)))
+
 class BigMLKitConnectorTests: XCTestCase {
     
     var connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.BMLDevelopmentMode)
@@ -58,6 +50,7 @@ class BigMLKitConnectorTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
+        installSigHandler();
         self.connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.BMLDevelopmentMode)
 }
     
@@ -81,7 +74,7 @@ class BigMLKitConnectorTests: XCTestCase {
             
             let filePath = NSBundle.pathForResource("iris.csv")
             let resource = BMLMinimalResource( name:"testCreateDatasource", type:BMLResourceType.File, uuid:filePath!)
-            self.connector.createResource(BMLResourceType.Source, name: "provaDatasource", options: ["" : ""], from: resource) { (resource, error) -> Void in
+            self.connector.createResource(BMLResourceType.Source, name: "testCreateDatasource", options: ["" : ""], from: resource) { (resource, error) -> Void in
                 exp.fulfill()
                 XCTAssert(resource != nil && error == nil, "Pass")
             }
@@ -94,7 +87,7 @@ class BigMLKitConnectorTests: XCTestCase {
             
             let filePath = NSBundle.pathForResource("iris.csv")
             let resource = BMLMinimalResource( name:"testCreateDatasourceFail", type:BMLResourceType.File, uuid:filePath!)
-            self.connector.createResource(BMLResourceType.Dataset, name: "provaDatasource", options: ["" : ""], from: resource) { (resource, error) -> Void in
+            self.connector.createResource(BMLResourceType.Dataset, name: "testCreateDatasourceFail", options: ["" : ""], from: resource) { (resource, error) -> Void in
                 exp.fulfill()
                 XCTAssert(error != nil, "Pass")
             }
@@ -104,8 +97,19 @@ class BigMLKitConnectorTests: XCTestCase {
     func testCreateDataset() {
         
         self.runTest("testCreateDataset") { (exp) in
-            let resource = BMLMinimalResource( name:"provaSwift", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
-            self.connector.createResource(BMLResourceType.Dataset, name: "provaDataset", options: ["" : ""], from: resource) { (resource, error) -> Void in
+            let resource = BMLMinimalResource( name:"testCreateDataset", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
+            self.connector.createResource(BMLResourceType.Dataset, name: "testCreateDataset", options: ["" : ""], from: resource) { (resource, error) -> Void in
+                exp.fulfill()
+                XCTAssert(resource != nil && error == nil, "Pass")
+            }
+        }
+    }
+    
+    func testCreateDatasetFromCSVFail() {
+        
+        self.runTest("testCreateDatasetFromCSVFail") { (exp) in
+            let resource = BMLMinimalResource( name:"testCreateDatasetFromCSVFail", type:BMLResourceType.File, uuid:NSBundle.pathForResource("iris.csv")!)
+            self.connector.createResource(BMLResourceType.Dataset, name: "testCreateDatasetFromCSVFail", options: ["" : ""], from: resource) { (resource, error) -> Void in
                 exp.fulfill()
                 XCTAssert(resource != nil && error == nil, "Pass")
             }
