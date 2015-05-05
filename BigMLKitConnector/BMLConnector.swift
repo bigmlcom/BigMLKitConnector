@@ -76,7 +76,17 @@ public enum BMLResourceType : String, StringLiteralConvertible {
     }
 }
 
-public class BMLResource : NSObject {
+public protocol BMLResource {
+    
+    var name : String  { get }
+    var type : BMLResourceType  { get }
+    var uuid : String { get }
+    var fullUuid : String { get }
+    
+    init(name: String, type: BMLResourceType, uuid: String)
+}
+
+public class BMLMinimalResource : NSObject, BMLResource {
     
     public var name : String
     public var type : BMLResourceType
@@ -87,7 +97,7 @@ public class BMLResource : NSObject {
         }
     }
     
-    public init(name: String, type: BMLResourceType, uuid: String) {
+    public required init(name: String, type: BMLResourceType, uuid: String) {
         
         self.name = name
         self.type = type
@@ -216,7 +226,7 @@ public class BMLConnector : NSObject {
                     
                     var resource : BMLResource?
                     if (error == nil) {
-                        resource = BMLResource(name: name, type: type, uuid: "")
+                        resource = BMLMinimalResource(name: name, type: type, uuid: "")
                     }
                     completion(resource : resource, error : error)
                 }
