@@ -67,12 +67,16 @@ public enum BMLResourceType : String, StringLiteralConvertible {
         }
     }
     
+    public init(_ value: String) {
+        self.init(stringLiteral: value)
+    }
+    
     public init(extendedGraphemeClusterLiteral value: String) {
-        self = BMLResourceType(stringLiteral:value)
+        self = BMLResourceType(value)
     }
     
     public init(unicodeScalarLiteral value: String) {
-        self = BMLResourceType(stringLiteral:value)
+        self = BMLResourceType(value)
     }
 }
 
@@ -102,6 +106,14 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.name = name
         self.type = type
         self.uuid = uuid
+    }
+    
+    public required init(name: String, fullUuid: String) {
+        
+        let components = split(fullUuid) {$0 == "/"}
+        self.name = name
+        self.type = BMLResourceType(components[0])
+        self.uuid = components[1]
     }
 }
 
@@ -148,34 +160,16 @@ public class BMLConnector : NSObject {
         task.resume()
     }
     
-    func get(url : NSURL, completion:(result : AnyObject?, error : NSError?) -> Void) {
+    func get(url : NSURL, completion:(jsonObject : AnyObject?, error : NSError?) -> Void) {
         
         self.dataWithRequest(NSMutableURLRequest(URL:url)) { (data, error) in
             
             var localError : NSError? = error;
-            var result : AnyObject?
+            var jsonObject : AnyObject?
             if (error == nil) {
-
-                let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
-                if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
-                    println("RESPONSE: \(jsonObject)")
-
-                    let type = jsonDict["resource"] as! String
-                    result = BMLMinimalResource(name: jsonDict["name"] as! String, type:BMLResourceType(stringLiteral: type), uuid:jsonDict["resource"] as! String)
-
-                } else {
-                    
-                    if let jsonArray = jsonObject as? [AnyObject] {
-                        println("RESPONSE: \(jsonObject)")
-                        result = jsonObject
-
-                    } else {
-                        localError = NSError(code:-10001, message:"Bad response format")
-                        println("RESPONSE: \(jsonObject)")
-                    }
-                }
+                jsonObject = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
             }
-            completion(result: result, error: localError)
+            completion(jsonObject: jsonObject, error: localError)
         }
     }
     
@@ -282,8 +276,25 @@ public class BMLConnector : NSObject {
         completion:(resources : [BMLResource], error : NSError?) -> Void) {
             
             if let url = self.authenticatedUrl(type.rawValue) {
-                self.get(url) { (result, error) in
-                    completion(resources : [], error : nil)
+                self.get(url) { (jsonObject, error) in
+                    
+                    var localError = error;
+                    var resources : [BMLResource] = []
+                    if let jsonDict = jsonObject as? [String : AnyObject], jsonResources = jsonDict["objects"] as? [AnyObject] {
+
+                        resources = map(jsonResources) {
+                            if let type = $0["resource"] as? String {
+                                return BMLMinimalResource(name: $0["name"] as! String, fullUuid:$0["resource"] as! String)
+                            } else {
+                                localError = NSError(code:-10001, message:"Bad response format")
+                                return BMLMinimalResource(name: "Wrong Resource", fullUuid:"Wrong/Resource")
+                            }
+                        }
+                    } else {
+                        localError = NSError(code:-10001, message:"Bad response format")
+                        println("RESPONSE: \(jsonObject)")
+                    }
+                    completion(resources: resources, error : nil)
                 }
             }
     }
@@ -291,11 +302,31 @@ public class BMLConnector : NSObject {
     public func getResource(
         type: BMLResourceType,
         uuid: String,
-        completion:(resources : [BMLResource], error : NSError?) -> Void) {
+        completion:(resource : BMLResource?, error : NSError?) -> Void) {
             
             if let url = self.authenticatedUrl("\(type.rawValue)/\(uuid)") {
-                self.get(url) { (result, error) in
-                    completion(resources : [], error : nil)
+                self.get(url) { (jsonObject, error) in
+                    
+                    var localError = error;
+                    var resource : BMLResource? = nil
+                    if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
+                        
+                        if (code == 200) {
+                            if let type = jsonDict["resource"] as? String {
+                                resource = BMLMinimalResource(name: jsonDict["name"] as! String, fullUuid:jsonDict["resource"] as! String)
+                            }
+                        } else {
+                            if let message = jsonDict["status"]?["message"] as? String {
+                                localError = NSError(code:code, message:message)
+                            }
+                        }
+                        
+                    }
+                    if (resource == nil && localError == nil) {
+                        localError = NSError(code:-10001, message:"Bad response format")
+                        println("RESPONSE: \(jsonObject)")
+                    }
+                    completion(resource : resource, error : localError)
                 }
             }
     }

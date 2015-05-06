@@ -116,24 +116,32 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func teistListDataset() {
+    func testListDataset() {
         
         self.runTest("testListDataset") { (exp) in
-            self.connector.listResources(BMLResourceType.Dataset) { (resource, error) -> Void in
+            self.connector.listResources(BMLResourceType.Dataset) { (resources, error) -> Void in
                 exp.fulfill()
-                println("RESOURCE \(resource)")
-                XCTAssert(error == nil, "Pass")
+                XCTAssert(count(resources) > 0 && error == nil, "Pass")
             }
         }
     }
     
-    func testGetDataset() {
+    func teistGetDataset() {
         
         self.runTest("testGetDataset") { (exp) in
             self.connector.getResource(BMLResourceType.Source, uuid: "5540b821c0eea909d0000525") { (resource, error) -> Void in
                 exp.fulfill()
-                println("RESOURCE \(resource)")
-                XCTAssert(error == nil, "Pass")
+                XCTAssert(error == nil && resource != nil, "Pass")
+            }
+        }
+    }
+    
+    func teistGetDatasetFail() {
+        
+        self.runTest("testGetDatasetFail") { (exp) in
+            self.connector.getResource(BMLResourceType.Source, uuid: "no-uuid") { (resource, error) -> Void in
+                exp.fulfill()
+                XCTAssert(error != nil && resource == nil, "Pass")
             }
         }
     }
