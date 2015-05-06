@@ -24,23 +24,23 @@ extension NSMutableData {
     }
 }
 
-public enum BMLMode {
+@objc public enum BMLMode : Int {
 
     case BMLDevelopmentMode
     case BMLProductionMode
 }
 
-public enum BMLResourceType : String, StringLiteralConvertible {
+@objc public enum BMLResourceType : Int, StringLiteralConvertible {
     
-    case File = "file"
-    case Source = "source"
-    case Dataset = "dataset"
-    case Model = "model"
-    case Cluster = "cluster"
-    case Anomaly = "anomaly"
-    case Prediction = "prediction"
-    case Project = "project"
-    case InvalidType = ""
+    case File
+    case Source
+    case Dataset
+    case Model
+    case Cluster
+    case Anomaly
+    case Prediction
+    case Project
+    case InvalidType
     
     static let all = [File, Source, Dataset, Model, Cluster, Anomaly, Prediction, Project]
 
@@ -78,9 +78,32 @@ public enum BMLResourceType : String, StringLiteralConvertible {
     public init(unicodeScalarLiteral value: String) {
         self = BMLResourceType(value)
     }
+
+    public func stringValue() -> String {
+        switch (self) {
+        case File:
+            return "file"
+        case Source:
+            return "source"
+        case Dataset:
+            return "dataset"
+        case Model:
+            return "model"
+        case Cluster:
+            return "cluster"
+        case Prediction:
+            return "prediction"
+        case Anomaly:
+            return "anomaly"
+        case Project:
+            return "project"
+        default:
+            return "invalid"
+        }
+    }
 }
 
-public protocol BMLResource {
+@objc public protocol BMLResource {
     
     var name : String  { get }
     var type : BMLResourceType  { get }
@@ -97,7 +120,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
     public var uuid : String
     public var fullUuid : String {
         get {
-            return "\(type.rawValue)/\(uuid)"
+            return "\(type.stringValue())/\(uuid)"
         }
     }
     
@@ -244,7 +267,7 @@ public class BMLConnector : NSObject {
         from: BMLResource,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
 
-            if let url = self.authenticatedUrl(type.rawValue) {
+            if let url = self.authenticatedUrl(type.stringValue()) {
                 
                 let completionBlock : (result : AnyObject?, error : NSError?) -> Void = { (result, error) in
                     
@@ -257,13 +280,13 @@ public class BMLConnector : NSObject {
                 
                 if (from.type == BMLResourceType.File) {
                     
-//                    assert(type == BMLResourceType.Source, "Attempting to create a \(type.rawValue) from a CSV File.")
+//                    assert(type == BMLResourceType.Source, "Attempting to create a \(type.stringValue()) from a CSV File.")
                     self.upload(url, filename:name, filePath:from.uuid, body: [String : String](), completion: completionBlock)
                     
                 } else {
 
                     let body : [String : String] = [
-                        from.type.rawValue : from.fullUuid,
+                        from.type.stringValue() : from.fullUuid,
                         "name" : name,
                     ]
                     self.post(url, body: body, completion: completionBlock)
@@ -275,7 +298,7 @@ public class BMLConnector : NSObject {
         type: BMLResourceType,
         completion:(resources : [BMLResource], error : NSError?) -> Void) {
             
-            if let url = self.authenticatedUrl(type.rawValue) {
+            if let url = self.authenticatedUrl(type.stringValue()) {
                 self.get(url) { (jsonObject, error) in
                     
                     var localError = error;
@@ -304,7 +327,7 @@ public class BMLConnector : NSObject {
         uuid: String,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
             
-            if let url = self.authenticatedUrl("\(type.rawValue)/\(uuid)") {
+            if let url = self.authenticatedUrl("\(type.stringValue())/\(uuid)") {
                 self.get(url) { (jsonObject, error) in
                     
                     var localError = error;

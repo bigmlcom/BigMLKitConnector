@@ -68,7 +68,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
 
-    func teistCreateDatasource() {
+    func testCreateDatasource() {
         
         self.runTest("testCreateDatasource") { (exp) in
             
@@ -81,7 +81,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func teistCreateDatasourceFail() {
+    func testCreateDatasourceFail() {
         
         self.runTest("testCreateDatasourceFail") { (exp) in
             
@@ -94,7 +94,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func teistCreateDataset() {
+    func testCreateDataset() {
         
         self.runTest("testCreateDataset") { (exp) in
             let resource = BMLMinimalResource( name:"testCreateDataset", type:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
@@ -105,7 +105,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func teistCreateDatasetFromCSVFail() {
+    func testCreateDatasetFromCSVFail() {
         
         self.runTest("testCreateDatasetFromCSVFail") { (exp) in
             let resource = BMLMinimalResource( name:"testCreateDatasetFromCSVFail", type:BMLResourceType.File, uuid:NSBundle.pathForResource("iris.csv")!)
@@ -126,7 +126,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func teistGetDataset() {
+    func testGetDataset() {
         
         self.runTest("testGetDataset") { (exp) in
             self.connector.getResource(BMLResourceType.Source, uuid: "5540b821c0eea909d0000525") { (resource, error) -> Void in
@@ -136,7 +136,7 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func teistGetDatasetFail() {
+    func testGetDatasetFail() {
         
         self.runTest("testGetDatasetFail") { (exp) in
             self.connector.getResource(BMLResourceType.Source, uuid: "no-uuid") { (resource, error) -> Void in
