@@ -12,6 +12,7 @@
 		492DC2A81AF786120053F908 /* iris.csv in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A51AF786120053F908 /* iris.csv */; };
 		492DC2A91AF786120053F908 /* diab.csv in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A61AF786120053F908 /* diab.csv */; };
 		492DC2AD1AF8B8A60053F908 /* BMLSigHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */; };
+		492DC2AF1AFA74190053F908 /* BigMLKitConnectorObjcTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 492DC2AE1AFA74190053F908 /* BigMLKitConnectorObjcTests.m */; };
 		49C5AA741AEF943800B81AA6 /* BigMLKitConnector.h in Headers */ = {isa = PBXBuildFile; fileRef = 49C5AA731AEF943800B81AA6 /* BigMLKitConnector.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		49C5AA7A1AEF943900B81AA6 /* BigMLKitConnector.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49C5AA6E1AEF943800B81AA6 /* BigMLKitConnector.framework */; };
 		49C5AA811AEF943900B81AA6 /* BigMLKitConnectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C5AA801AEF943900B81AA6 /* BigMLKitConnectorTests.swift */; };
@@ -36,6 +37,7 @@
 		492DC2AA1AF8B8A50053F908 /* BigMLKitConnectorTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BigMLKitConnectorTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BMLSigHandler.c; sourceTree = "<group>"; };
 		492DC2AC1AF8B8A60053F908 /* BMLSigHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BMLSigHandler.h; sourceTree = "<group>"; };
+		492DC2AE1AFA74190053F908 /* BigMLKitConnectorObjcTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BigMLKitConnectorObjcTests.m; sourceTree = "<group>"; };
 		49C5AA6E1AEF943800B81AA6 /* BigMLKitConnector.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BigMLKitConnector.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		49C5AA721AEF943800B81AA6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		49C5AA731AEF943800B81AA6 /* BigMLKitConnector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BigMLKitConnector.h; sourceTree = "<group>"; };
@@ -109,6 +111,7 @@
 				492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */,
 				492DC2AC1AF8B8A60053F908 /* BMLSigHandler.h */,
 				492DC2AA1AF8B8A50053F908 /* BigMLKitConnectorTests-Bridging-Header.h */,
+				492DC2AE1AFA74190053F908 /* BigMLKitConnectorObjcTests.m */,
 			);
 			path = BigMLKitConnectorTests;
 			sourceTree = "<group>";
@@ -244,6 +247,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				492DC2AD1AF8B8A60053F908 /* BMLSigHandler.c in Sources */,
+				492DC2AF1AFA74190053F908 /* BigMLKitConnectorObjcTests.m in Sources */,
 				49C5AA811AEF943900B81AA6 /* BigMLKitConnectorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
