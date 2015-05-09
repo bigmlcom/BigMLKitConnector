@@ -144,6 +144,7 @@ func != (left : BMLResourceStatus, right : BMLResourceStatus) -> Bool {
     var uuid : BMLResourceUuid { get }
     var fullUuid : BMLResourceFullUuid { get }
     var status : BMLResourceStatus { get set }
+    var progress : Float { get set }
     
     init(name: String, type: BMLResourceType, uuid: String)
 }
@@ -153,6 +154,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
     public var name : String
     public var type : BMLResourceType
     public var status : BMLResourceStatus
+    public var progress : Float
     public var uuid : BMLResourceUuid
     public var fullUuid : BMLResourceFullUuid {
         get {
@@ -166,6 +168,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.type = type
         self.uuid = uuid
         self.status = BMLResourceStatus.Undefined
+        self.progress = 0.0
     }
     
     public required init(name: String, fullUuid: String) {
@@ -175,6 +178,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.type = BMLResourceType(stringLiteral: components[0])
         self.uuid = components[1]
         self.status = BMLResourceStatus.Undefined
+        self.progress = 0.0
     }
 }
 
@@ -455,7 +459,7 @@ public class BMLConnector : NSObject {
                         }
                         if (resource.status != statusCode) {
                             resource.status = statusCode
-    //                        resource.progress = (resourceDict["status"] as! NSDictionary)["progress"] as Float
+                            resource.progress = statusDict["progress"] as! Float
                         }
                     } else if (statusCode == BMLResourceStatus.Ended) {
                         resource.status = statusCode
