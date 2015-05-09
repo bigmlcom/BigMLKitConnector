@@ -128,6 +128,13 @@ public typealias BMLResourceFullUuid = String
     case Failed = -1
     case Unknown = -2
     case Runnable = -3
+    
+}
+func < (left : BMLResourceStatus, right : BMLResourceStatus) -> Bool {
+    return left.rawValue < right.rawValue
+}
+func != (left : BMLResourceStatus, right : BMLResourceStatus) -> Bool {
+    return left.rawValue != right.rawValue
 }
 
 @objc public protocol BMLResource {
@@ -438,22 +445,22 @@ public class BMLConnector : NSObject {
                 resource.status = BMLResourceStatus.Failed
                 completion(resource: resource, error: error)
             } else {
-                let status = (resourceDict["status"] as! NSDictionary)["code"] as! Int
-                println("Monitoring status \(status)")
-                let waiting = BMLResourceStatus.Waiting
-                if (status < 0) { // .Waiting
-                    resource.status = BMLResourceStatus.Failed
-                } else if (status < 5) { // BMLResourceStatus.Ended
-                    delay(1.0) {
-                        self.trackResourceStatus(resource, completion: completion)
+                if let statusDict = resourceDict["status"] as? NSDictionary, statusCode = statusDict["code"] as? BMLResourceStatus {
+                    println("Monitoring status \(statusCode)")
+                    if (statusCode < BMLResourceStatus.Waiting) {
+                        resource.status = BMLResourceStatus.Failed
+                    } else if (statusCode < BMLResourceStatus.Ended) {
+                        delay(1.0) {
+                            self.trackResourceStatus(resource, completion: completion)
+                        }
+                        if (resource.status != statusCode) {
+                            resource.status = statusCode
+    //                        resource.progress = (resourceDict["status"] as! NSDictionary)["progress"] as Float
+                        }
+                    } else if (statusCode == BMLResourceStatus.Ended) {
+                        resource.status = statusCode
+                        completion(resource: resource, error: error)
                     }
-                    if (resource.status.rawValue != status) {
-                        resource.status = BMLResourceStatus(rawValue: status)!
-//                        resource.progress = (resourceDict["status"] as! NSDictionary)["progress"] as Float
-                    }
-                } else if (status == 5) {  // BMLResourceStatus.Ended
-                    resource.status = BMLResourceStatus(rawValue: status)!
-                    completion(resource: resource, error: error)
                 }
             }
         }

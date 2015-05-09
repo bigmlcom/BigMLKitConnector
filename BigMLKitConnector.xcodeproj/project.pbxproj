@@ -149,7 +149,6 @@
 				49C5AA6A1AEF943800B81AA6 /* Frameworks */,
 				49C5AA6B1AEF943800B81AA6 /* Headers */,
 				49C5AA6C1AEF943800B81AA6 /* Resources */,
-				49962D2F1AFD158E00E2FA55 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -233,22 +232,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		49962D2F1AFD158E00E2FA55 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "swiftc -emit-module BigMLKitConnector/BMLConnector.swift -sdk $(xcrun --show-sdk-path --sdk macosx) -module-name BigMLKitConnector";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		49C5AA691AEF943800B81AA6 /* Sources */ = {
