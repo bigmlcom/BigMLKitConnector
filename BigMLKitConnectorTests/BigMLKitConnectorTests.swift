@@ -91,7 +91,7 @@ class BigMLKitConnectorTests: XCTestCase {
             }
         }
     }
-    
+
     func testCreateDataset() {
         
         self.runTest("testCreateDataset") { (exp) in
@@ -102,7 +102,7 @@ class BigMLKitConnectorTests: XCTestCase {
             }
         }
     }
-    
+
     func testCreateDatasetFromCSVFail() {
         
         self.runTest("testCreateDatasetFromCSVFail") { (exp) in
@@ -161,5 +161,5 @@ class BigMLKitConnectorTests: XCTestCase {
             // Put the code you want to measure the time of here.
         }
     }
-    
+
 }

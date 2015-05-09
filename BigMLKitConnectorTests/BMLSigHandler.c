@@ -16,7 +16,7 @@ void sigHandler(int sig) {
 
 void installSigHandler() {
     
-    printf("INSTALLING HANDLERS");
+    printf("INSTALLING HANDLERS\n");
     
     signal(SIGABRT, sigHandler);
     signal(SIGILL, sigHandler);

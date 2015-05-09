@@ -8,6 +8,16 @@
 
 import Foundation
 
+func delay(delay:Double, closure:()->()) {
+    
+    dispatch_after(
+        dispatch_time(
+            DISPATCH_TIME_NOW,
+            Int64(delay * Double(NSEC_PER_SEC))
+        ),
+        dispatch_get_main_queue(), closure)
+}
+
 extension NSError {
     
     convenience init(code: Int, message: String) {
@@ -103,12 +113,30 @@ extension NSMutableData {
     }
 }
 
+public typealias BMLResourceUuid = String
+public typealias BMLResourceFullUuid = String
+
+@objc public enum BMLResourceStatus : Int {
+    
+    case Undefined = 1000
+    case Waiting = 0
+    case Queued = 1
+    case Started = 2
+    case InProgress = 3
+    case Summarized = 4
+    case Ended = 5
+    case Failed = -1
+    case Unknown = -2
+    case Runnable = -3
+}
+
 @objc public protocol BMLResource {
     
     var name : String  { get }
     var type : BMLResourceType  { get }
-    var uuid : String { get }
-    var fullUuid : String { get }
+    var uuid : BMLResourceUuid { get }
+    var fullUuid : BMLResourceFullUuid { get }
+    var status : BMLResourceStatus { get set }
     
     init(name: String, type: BMLResourceType, uuid: String)
 }
@@ -117,8 +145,9 @@ public class BMLMinimalResource : NSObject, BMLResource {
     
     public var name : String
     public var type : BMLResourceType
-    public var uuid : String
-    public var fullUuid : String {
+    public var status : BMLResourceStatus
+    public var uuid : BMLResourceUuid
+    public var fullUuid : BMLResourceFullUuid {
         get {
             return "\(type.stringValue())/\(uuid)"
         }
@@ -129,14 +158,16 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.name = name
         self.type = type
         self.uuid = uuid
+        self.status = BMLResourceStatus.Undefined
     }
     
     public required init(name: String, fullUuid: String) {
         
         let components = split(fullUuid) {$0 == "/"}
         self.name = name
-        self.type = BMLResourceType(components[0])
+        self.type = BMLResourceType(stringLiteral: components[0])
         self.uuid = components[1]
+        self.status = BMLResourceStatus.Undefined
     }
 }
 
@@ -196,7 +227,7 @@ public class BMLConnector : NSObject {
         }
     }
     
-    func post(url : NSURL, body: [String : String], completion:(result : AnyObject?, error : NSError?) -> Void) {
+    func post(url : NSURL, body: [String : String], completion:(result : [String : AnyObject], error : NSError?) -> Void) {
         
         var error : NSError? = nil
         if let bodyData = NSJSONSerialization.dataWithJSONObject(body, options: nil, error:&error) {
@@ -208,26 +239,27 @@ public class BMLConnector : NSObject {
             self.dataWithRequest(request) { (data, error) in
                 
                 var localError : NSError? = error;
+                var result = ["" : "" as AnyObject]
                 if (error == nil) {
                     
                     let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
                     if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
-                        println("RESPONSE: \(jsonObject)")
+                        result = jsonDict
+//                        println("RESPONSE: \(jsonObject)")
                         if (code != 201) {
                             localError = NSError(code: code, message: jsonDict["status"]!.description)
                         }
                     } else {
                         localError = NSError(code:-10001, message:"Bad response format")
-                        println("RESPONSE: \(jsonObject)")
+//                        println("RESPONSE: \(jsonObject)")
                     }
                 }
-                let result = []
                 completion(result: result, error: localError)
             }
         }
     }
     
-    func upload(url : NSURL, filename: String, filePath: String, body: [String : String], completion:(result : AnyObject?, error : NSError?) -> Void) {
+    func upload(url : NSURL, filename: String, filePath: String, body: [String : String], completion:(result : [String : AnyObject], error : NSError?) -> Void) {
         
         let request = NSMutableURLRequest(URL:url)
         let boundary = "---------------------------14737809831466499882746641449"
@@ -250,7 +282,24 @@ public class BMLConnector : NSObject {
         request.HTTPBody = bodyData
         request.HTTPMethod = "POST";
 
-        self.dataWithRequest(request) { (result, error) in
+        self.dataWithRequest(request) { (data, error) in
+            
+            var localError : NSError? = error;
+            var result = ["" : "" as AnyObject]
+            if (error == nil) {
+                
+                let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
+                if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
+                    result = jsonDict
+//                    println("RESPONSE: \(jsonObject)")
+                    if (code != 201) {
+                        localError = NSError(code: code, message: jsonDict["status"]!.description)
+                    }
+                } else {
+                    localError = NSError(code:-10001, message:"Bad response format")
+//                    println("RESPONSE: \(jsonObject)")
+                }
+            }
             completion(result: result, error: error)
         }
     }
@@ -269,16 +318,25 @@ public class BMLConnector : NSObject {
 
             if let url = self.authenticatedUrl(type.stringValue()) {
                 
-                let completionBlock : (result : AnyObject?, error : NSError?) -> Void = { (result, error) in
+                let completionBlock : (result : [String : AnyObject], error : NSError?) -> Void = { (result, error) in
                     
                     var resource : BMLResource?
-                    if (error == nil) {
-                        resource = BMLMinimalResource(name: name, type: type, uuid: "")
+                    var localError = error
+                    if (localError == nil) {
+                        if let fullUuid = result["resource"] as? String {
+                            resource = BMLMinimalResource(name: name, fullUuid: fullUuid)
+                            self.trackResourceStatus(resource!, completion: completion)
+                        } else {
+                            localError = NSError(code: -10001, message: "Bad response format")
+                        }
                     }
-                    completion(resource : resource, error : error)
+                    if (localError != nil) {
+                        completion(resource : nil, error : localError)
+                    }
                 }
                 
-                if (from.type == BMLResourceType.File) {
+                if (from.type == "file") {
+//                if (from.type == BMLResourceType.File) {
                     
 //                    assert(type == BMLResourceType.Source, "Attempting to create a \(type.stringValue()) from a CSV File.")
                     self.upload(url, filename:name, filePath:from.uuid, body: [String : String](), completion: completionBlock)
@@ -322,36 +380,83 @@ public class BMLConnector : NSObject {
             }
     }
     
-    public func getResource(
+    func getIntermediateResource(
         type: BMLResourceType,
         uuid: String,
-        completion:(resource : BMLResource?, error : NSError?) -> Void) {
+        completion:(resourceDict : [String : AnyObject], error : NSError?) -> Void) {
             
             if let url = self.authenticatedUrl("\(type.stringValue())/\(uuid)") {
                 self.get(url) { (jsonObject, error) in
                     
                     var localError = error;
-                    var resource : BMLResource? = nil
-                    if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
-                        
-                        if (code == 200) {
-                            if let type = jsonDict["resource"] as? String {
-                                resource = BMLMinimalResource(name: jsonDict["name"] as! String, fullUuid:jsonDict["resource"] as! String)
-                            }
-                        } else {
-                            if let message = jsonDict["status"]?["message"] as? String {
-                                localError = NSError(code:code, message:message)
-                            }
-                        }
-                        
-                    }
-                    if (resource == nil && localError == nil) {
+                    var resourceDict = ["" : "" as AnyObject]
+                    if let jsonDict = jsonObject as? [String : AnyObject]/*, code = jsonDict["code"] as? Int*/ {
+                        resourceDict = jsonDict
+                    } else {
                         localError = NSError(code:-10001, message:"Bad response format")
-                        println("RESPONSE: \(jsonObject)")
                     }
-                    completion(resource : resource, error : localError)
+                    completion(resourceDict : resourceDict, error : localError)
                 }
             }
     }
     
+    public func getResource(
+        type: BMLResourceType,
+        uuid: String,
+        completion:(resource : BMLResource?, error : NSError?) -> Void) {
+            
+            self.getIntermediateResource(type, uuid: uuid) { (resourceDict, error) -> Void in
+
+                var localError = error;
+                var resource : BMLResource? = nil
+                if let code = resourceDict["code"] as? Int {
+                    
+                    if (code == 200) {
+                        if let type = resourceDict["resource"] as? String {
+                            resource = BMLMinimalResource(name: resourceDict["name"] as! String, fullUuid:resourceDict["resource"] as! String)
+                        }
+                    } else {
+                        if let message = resourceDict["status"]?["message"] as? String {
+                            localError = NSError(code:code, message:message)
+                        }
+                    }
+                    
+                }
+                if (resource == nil && localError == nil) {
+                    localError = NSError(code:-10001, message:"Bad response format")
+//                    println("RESPONSE: \(resourceDict)")
+                }
+                completion(resource : resource, error : localError)
+            }
+    }
+    
+    func trackResourceStatus(resource : BMLResource,
+        completion:(resource : BMLResource?, error : NSError?) -> Void) {
+    
+        self.getIntermediateResource(resource.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
+            if (error != nil) {
+                resource.status = BMLResourceStatus.Failed
+                completion(resource: resource, error: error)
+            } else {
+                let status = (resourceDict["status"] as! NSDictionary)["code"] as! Int
+                println("Monitoring status \(status)")
+                let waiting = BMLResourceStatus.Waiting
+                if (status < 0) { // .Waiting
+                    resource.status = BMLResourceStatus.Failed
+                } else if (status < 5) { // BMLResourceStatus.Ended
+                    delay(1.0) {
+                        self.trackResourceStatus(resource, completion: completion)
+                    }
+                    if (resource.status.rawValue != status) {
+                        resource.status = BMLResourceStatus(rawValue: status)!
+//                        resource.progress = (resourceDict["status"] as! NSDictionary)["progress"] as Float
+                    }
+                } else if (status == 5) {  // BMLResourceStatus.Ended
+                    resource.status = BMLResourceStatus(rawValue: status)!
+                    completion(resource: resource, error: error)
+                }
+            }
+        }
+    }
+
 }
