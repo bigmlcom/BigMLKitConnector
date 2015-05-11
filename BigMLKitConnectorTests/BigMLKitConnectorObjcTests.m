@@ -51,7 +51,7 @@
     
     [self runTest:@"testListDatasetObjc" test:^(XCTestExpectation* exp) {
         
-        [_connector listResources:BMLResourceTypeDataset completion:^(NSArray * __nonnull resources, NSError * __nullable error) {
+        [_connector listResources:BMLResourceRawTypeDataset completion:^(NSArray * __nonnull resources, NSError * __nullable error) {
 
             [exp fulfill];
             XCTAssert([resources count] > 0 && error == nil, @"Pass");
@@ -66,10 +66,10 @@
         
         BMLMinimalResource* resource = [[BMLMinimalResource alloc]
                                         initWithName:@"testCreateAnomalyObjC"
-                                        type:BMLResourceTypeDataset
+                                        rawType:BMLResourceRawTypeDataset
                                         uuid:@"554a3b4977920c09e3000431"];
         
-        [_connector createResource:BMLResourceTypeAnomaly
+        [_connector createResource:BMLResourceRawTypeAnomaly
                               name:@"testCreateAnomalyObjc"
                            options:@{}
                               from:resource

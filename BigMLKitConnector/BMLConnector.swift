@@ -40,7 +40,7 @@ extension NSMutableData {
     case BMLProductionMode
 }
 
-@objc public enum BMLResourceType : Int, StringLiteralConvertible {
+@objc public enum BMLResourceRawType : Int, StringLiteralConvertible {
     
     case File
     case Source
@@ -82,11 +82,11 @@ extension NSMutableData {
     }
     
     public init(extendedGraphemeClusterLiteral value: String) {
-        self = BMLResourceType(value)
+        self = BMLResourceRawType(value)
     }
     
     public init(unicodeScalarLiteral value: String) {
-        self = BMLResourceType(value)
+        self = BMLResourceRawType(value)
     }
 
     public func stringValue() -> String {
@@ -111,6 +111,44 @@ extension NSMutableData {
             return "invalid"
         }
     }
+}
+
+@objc public class BMLResourceType : NSObject, StringLiteralConvertible {
+
+    public var type : BMLResourceRawType
+    
+    public required init(rawType value: BMLResourceRawType) {
+        self.type = value
+        super.init()
+    }
+    
+    public required init(stringLiteral value: String) {
+        self.type = BMLResourceRawType(stringLiteral: value)
+        super.init()
+    }
+    
+    public convenience init(_ value: String) {
+        self.init(stringLiteral: value)
+    }
+    
+    public required init(extendedGraphemeClusterLiteral value: String) {
+        self.type = BMLResourceRawType(value)
+        super.init()
+    }
+    
+    public required init(unicodeScalarLiteral value: String) {
+        self.type = BMLResourceRawType(value)
+        super.init()
+    }
+    
+    public func stringValue() -> String {
+        return self.type.stringValue()
+    }
+    
+}
+
+public func == (left : BMLResourceType, right : BMLResourceRawType) -> Bool {
+    return left.type == right
 }
 
 public typealias BMLResourceUuid = String
@@ -188,11 +226,20 @@ public class BMLMinimalResource : NSObject, BMLResource {
             return "\(type.stringValue())/\(uuid)"
         }
     }
-    
     public required init(name: String, type: BMLResourceType, uuid: String) {
         
         self.name = name
         self.type = type
+        self.uuid = uuid
+        self.status = BMLResourceStatus.Undefined
+        self.progress = 0.0
+    }
+    
+   
+    public required init(name: String, rawType: BMLResourceRawType, uuid: String) {
+        
+        self.name = name
+        self.type = BMLResourceType(rawType: rawType)
         self.uuid = uuid
         self.status = BMLResourceStatus.Undefined
         self.progress = 0.0
@@ -348,7 +395,7 @@ public class BMLConnector : NSObject {
     }
     
     public func createResource(
-        type: BMLResourceType,
+        type: BMLResourceRawType,
         name: String,
         options: [String : String],
         from: BMLResource,
@@ -373,7 +420,7 @@ public class BMLConnector : NSObject {
                     }
                 }
                 
-                if (from.type == BMLResourceType.File) {
+                if (from.type == BMLResourceRawType.File) {
                     
                     self.upload(url, filename:name, filePath:from.uuid, body: [String : String](), completion: completionBlock)
                     
@@ -389,7 +436,7 @@ public class BMLConnector : NSObject {
     }
 
     public func listResources(
-        type: BMLResourceType,
+        type: BMLResourceRawType,
         completion:(resources : [BMLResource], error : NSError?) -> Void) {
             
             if let url = self.authenticatedUrl(type.stringValue()) {
@@ -417,7 +464,7 @@ public class BMLConnector : NSObject {
     }
     
     func getIntermediateResource(
-        type: BMLResourceType,
+        type: BMLResourceRawType,
         uuid: String,
         completion:(resourceDict : [String : AnyObject], error : NSError?) -> Void) {
             
@@ -437,7 +484,7 @@ public class BMLConnector : NSObject {
     }
     
     public func getResource(
-        type: BMLResourceType,
+        type: BMLResourceRawType,
         uuid: String,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
             
@@ -469,7 +516,7 @@ public class BMLConnector : NSObject {
     func trackResourceStatus(resource : BMLResource,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
     
-        self.getIntermediateResource(resource.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
+        self.getIntermediateResource(resource.type.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
             
             var localError = error
             if (localError == nil) {
