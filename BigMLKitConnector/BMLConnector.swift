@@ -116,7 +116,7 @@ extension NSMutableData {
 public typealias BMLResourceUuid = String
 public typealias BMLResourceFullUuid = String
 
-@objc public enum BMLResourceStatus : Int {
+@objc public enum BMLResourceStatus : Int, IntegerLiteralConvertible {
     
     case Undefined = 1000
     case Waiting = 0
@@ -129,7 +129,34 @@ public typealias BMLResourceFullUuid = String
     case Unknown = -2
     case Runnable = -3
     
+    public init(integerLiteral value: IntegerLiteralType) {
+        switch(value) {
+        case 1000:
+            self = .Undefined
+        case 0:
+            self = .Waiting
+        case 1:
+            self = .Queued
+        case 2:
+            self = .Started
+        case 3:
+            self = .InProgress
+        case 4:
+            self = .Summarized
+        case 5:
+            self = .Ended
+        case -1:
+            self = .Failed
+        case -2:
+            self = .Unknown
+        case -3:
+            self = .Runnable
+        default:
+            self = .Undefined
+        }
+    }
 }
+
 func < (left : BMLResourceStatus, right : BMLResourceStatus) -> Bool {
     return left.rawValue < right.rawValue
 }
@@ -399,7 +426,7 @@ public class BMLConnector : NSObject {
                     
                     var localError = error;
                     var resourceDict = ["" : "" as AnyObject]
-                    if let jsonDict = jsonObject as? [String : AnyObject]/*, code = jsonDict["code"] as? Int*/ {
+                    if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                         resourceDict = jsonDict
                     } else {
                         localError = NSError(code:-10001, message:"Bad response format")
@@ -446,8 +473,9 @@ public class BMLConnector : NSObject {
             
             var localError = error
             if (localError == nil) {
-                if let statusDict = resourceDict["status"] as? NSDictionary, statusCode = statusDict["code"] as? BMLResourceStatus {
-                    println("Monitoring status \(statusCode)")
+                if let statusDict = resourceDict["status"] as? [String : AnyObject], statusCodeInt = statusDict["code"] as? Int {
+                    let statusCode = BMLResourceStatus(integerLiteral: statusCodeInt)
+                    println("Monitoring status \(statusCode.rawValue)")
                     if (statusCode < BMLResourceStatus.Waiting) {
                         resource.status = BMLResourceStatus.Failed
                     } else if (statusCode < BMLResourceStatus.Ended) {
@@ -456,7 +484,9 @@ public class BMLConnector : NSObject {
                         }
                         if (resource.status != statusCode) {
                             resource.status = statusCode
-                            resource.progress = statusDict["progress"] as! Float
+                            if let progress = statusDict["progress"] as? Float {
+                                resource.progress = progress
+                            }
                         }
                     } else if (statusCode == BMLResourceStatus.Ended) {
                         resource.status = statusCode
