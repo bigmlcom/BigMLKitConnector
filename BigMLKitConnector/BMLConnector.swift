@@ -346,10 +346,8 @@ public class BMLConnector : NSObject {
                     }
                 }
                 
-                if (from.type == "file") {
-//                if (from.type == BMLResourceType.File) {
+                if (from.type == BMLResourceType.File) {
                     
-//                    assert(type == BMLResourceType.Source, "Attempting to create a \(type.stringValue()) from a CSV File.")
                     self.upload(url, filename:name, filePath:from.uuid, body: [String : String](), completion: completionBlock)
                     
                 } else {
@@ -445,10 +443,9 @@ public class BMLConnector : NSObject {
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
     
         self.getIntermediateResource(resource.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
-            if (error != nil) {
-                resource.status = BMLResourceStatus.Failed
-                completion(resource: resource, error: error)
-            } else {
+            
+            var localError = error
+            if (localError == nil) {
                 if let statusDict = resourceDict["status"] as? NSDictionary, statusCode = statusDict["code"] as? BMLResourceStatus {
                     println("Monitoring status \(statusCode)")
                     if (statusCode < BMLResourceStatus.Waiting) {
@@ -465,6 +462,13 @@ public class BMLConnector : NSObject {
                         resource.status = statusCode
                         completion(resource: resource, error: error)
                     }
+                } else {
+                    localError = NSError(code: -10001, message: "Bad response format: no status found")
+                }
+                if (localError != nil) {
+                    println("Tracking error \(localError)")
+                    resource.status = BMLResourceStatus.Failed
+                    completion(resource: resource, error: localError)
                 }
             }
         }

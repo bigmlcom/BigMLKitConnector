@@ -61,7 +61,7 @@ class BigMLKitConnectorTests: XCTestCase {
         
         let exp = self.expectationWithDescription(name)
         test(exp)
-        self.waitForExpectationsWithTimeout(30) { (error) in
+        self.waitForExpectationsWithTimeout(60) { (error) in
             println("Expect error \(error)")
         }
     }
