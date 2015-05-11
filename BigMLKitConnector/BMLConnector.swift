@@ -113,7 +113,7 @@ extension NSMutableData {
     }
 }
 
-@objc public class BMLResourceType : NSObject, StringLiteralConvertible {
+@objc public class BMLResourceType : NSObject, StringLiteralConvertible, NSCopying {
 
     public var type : BMLResourceRawType
     
@@ -145,6 +145,11 @@ extension NSMutableData {
         return self.type.stringValue()
     }
     
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        
+        return BMLResourceType(rawType: self.type)
+    }
+
 }
 
 public func == (left : BMLResourceType, right : BMLResourceRawType) -> Bool {
