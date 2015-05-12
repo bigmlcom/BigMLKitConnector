@@ -159,6 +159,10 @@ public func == (left : BMLResourceType, right : BMLResourceRawType) -> Bool {
 public typealias BMLResourceUuid = String
 public typealias BMLResourceFullUuid = String
 
+/**
+The following values must match those at https://bigml.com/developers/status_codes
+Not all values are necessarily to be represented.
+**/
 @objc public enum BMLResourceStatus : Int, IntegerLiteralConvertible {
     
     case Undefined = 1000
@@ -213,6 +217,9 @@ func != (left : BMLResourceStatus, right : BMLResourceStatus) -> Bool {
     var type : BMLResourceType  { get }
     var uuid : BMLResourceUuid { get }
     var fullUuid : BMLResourceFullUuid { get }
+    
+    var definition : [String : AnyObject] { get }
+    
     var status : BMLResourceStatus { get set }
     var progress : Float { get set }
     
@@ -223,14 +230,19 @@ public class BMLMinimalResource : NSObject, BMLResource {
     
     public var name : String
     public var type : BMLResourceType
-    public var status : BMLResourceStatus
-    public var progress : Float
+    
+    public var definition : [String : AnyObject]
+
+    public dynamic var status : BMLResourceStatus
+    public dynamic var progress : Float
+    
     public var uuid : BMLResourceUuid
     public var fullUuid : BMLResourceFullUuid {
         get {
             return "\(type.stringValue())/\(uuid)"
         }
     }
+    
     public required init(name: String, type: BMLResourceType, uuid: String) {
         
         self.name = name
@@ -238,6 +250,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.uuid = uuid
         self.status = BMLResourceStatus.Undefined
         self.progress = 0.0
+        self.definition = [:];
     }
     
    
@@ -248,9 +261,10 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.uuid = uuid
         self.status = BMLResourceStatus.Undefined
         self.progress = 0.0
+        self.definition = [:];
     }
     
-    public required init(name: String, fullUuid: String) {
+    public required init(name : String, fullUuid : String, definition : [String : AnyObject]) {
         
         let components = split(fullUuid) {$0 == "/"}
         self.name = name
@@ -258,6 +272,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.uuid = components[1]
         self.status = BMLResourceStatus.Undefined
         self.progress = 0.0
+        self.definition = definition;
     }
 }
 
@@ -414,7 +429,7 @@ public class BMLConnector : NSObject {
                     var localError = error
                     if (localError == nil) {
                         if let fullUuid = result["resource"] as? String {
-                            resource = BMLMinimalResource(name: name, fullUuid: fullUuid)
+                            resource = BMLMinimalResource(name: name, fullUuid: fullUuid, definition: [:])
                             self.trackResourceStatus(resource!, completion: completion)
                         } else {
                             localError = NSError(code: -10001, message: "Bad response format")
@@ -449,14 +464,22 @@ public class BMLConnector : NSObject {
                     
                     var localError = error;
                     var resources : [BMLResource] = []
-                    if let jsonDict = jsonObject as? [String : AnyObject], jsonResources = jsonDict["objects"] as? [AnyObject] {
+                    if let jsonDict = jsonObject as? [String : AnyObject],
+                        jsonResources = jsonDict["objects"] as? [AnyObject] {
 
                         resources = map(jsonResources) {
-                            if let type = $0["resource"] as? String {
-                                return BMLMinimalResource(name: $0["name"] as! String, fullUuid:$0["resource"] as! String)
+                            
+                            if let type = $0["resource"] as? String,
+                                resourceDict = $0 as? [String : AnyObject] {
+                                
+                                return BMLMinimalResource(name: $0["name"] as! String,
+                                    fullUuid:$0["resource"] as! String,
+                                    definition:resourceDict)
                             } else {
                                 localError = NSError(code:-10001, message:"Bad response format")
-                                return BMLMinimalResource(name: "Wrong Resource", fullUuid:"Wrong/Resource")
+                                return BMLMinimalResource(name: "Wrong Resource",
+                                    fullUuid: "Wrong/Resource",
+                                    definition: [:])
                             }
                         }
                     } else {
@@ -478,7 +501,8 @@ public class BMLConnector : NSObject {
                     
                     var localError = error;
                     var resourceDict = ["" : "" as AnyObject]
-                    if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
+                    if let jsonDict = jsonObject as? [String : AnyObject],
+                        code = jsonDict["code"] as? Int {
                         resourceDict = jsonDict
                     } else {
                         localError = NSError(code:-10001, message:"Bad response format")
@@ -501,7 +525,9 @@ public class BMLConnector : NSObject {
                     
                     if (code == 200) {
                         if let type = resourceDict["resource"] as? String {
-                            resource = BMLMinimalResource(name: resourceDict["name"] as! String, fullUuid:resourceDict["resource"] as! String)
+                            resource = BMLMinimalResource(name: resourceDict["name"] as! String,
+                                fullUuid: resourceDict["resource"] as! String,
+                                definition: resourceDict)
                         }
                     } else {
                         if let message = resourceDict["status"]?["message"] as? String {
