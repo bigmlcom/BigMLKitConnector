@@ -79,6 +79,25 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
+    func testCreateDatasourceWithOptions() {
+        
+        self.runTest("testCreateDatasourceWithOptions") { (exp) in
+            
+            let filePath = NSBundle.pathForResource("iris.csv")
+            let resource = BMLMinimalResource(name:"testCreateDatasourceWithOptions", rawType:BMLResourceRawType.File, uuid:filePath!)
+            self.connector.createResource(BMLResourceRawType.Source,
+                name: "testCreateDatasourceWithOptions",
+                options: ["source_parser" : ["header" : false, "missing_tokens" : ["x"]]],
+                from: resource) { (resource, error) -> Void in
+                    exp.fulfill()
+                    if let error = error {
+                        println("Error: \(error)")
+                    }
+                    XCTAssert(resource != nil && error == nil, "Pass")
+            }
+        }
+    }
+    
     func testCreateDatasourceFail() {
         
         self.runTest("testCreateDatasourceFail") { (exp) in
@@ -96,13 +115,51 @@ class BigMLKitConnectorTests: XCTestCase {
         
         self.runTest("testCreateDataset") { (exp) in
             let resource = BMLMinimalResource(name:"testCreateDataset", rawType:BMLResourceRawType.Source, uuid:"5540b821c0eea909d0000525")
-            self.connector.createResource(BMLResourceRawType.Dataset, name: "testCreateDataset", options: ["" : ""], from: resource) { (resource, error) -> Void in
-                exp.fulfill()
-                XCTAssert(resource != nil && error == nil, "Pass")
+            self.connector.createResource(BMLResourceRawType.Dataset,
+                name: "testCreateDataset",
+                options: [:], from: resource) { (resource, error) -> Void in
+                    exp.fulfill()
+                    XCTAssert(resource != nil && error == nil, "Pass")
             }
         }
     }
-
+    
+    func testCreateDatasetWithOptions() {
+        
+        self.runTest("testCreateDatasetWithOptions") { (exp) in
+            let resource = BMLMinimalResource(name:"testCreateDatasetWithOptions", rawType:BMLResourceRawType.Source, uuid:"5540b821c0eea909d0000525")
+            self.connector.createResource(BMLResourceRawType.Dataset,
+                name: "testCreateDatasetWithOptions",
+                options: ["size" : 400,
+                    "fields" : ["000001" : ["name" : "field_1"]]],
+                from: resource) { (resource, error) -> Void in
+                    exp.fulfill()
+                    if let error = error {
+                        println("Error: \(error)")
+                    }
+                    XCTAssert(resource != nil && error == nil, "Pass")
+            }
+        }
+    }
+    
+    func testCreateDatasetWithOptionsFail() {
+        
+        self.runTest("testCreateDatasetWithOptionsFail") { (exp) in
+            let resource = BMLMinimalResource(name:"testCreateDatasetWithOptionsFail", rawType:BMLResourceRawType.Source, uuid:"5540b821c0eea909d0000525")
+            self.connector.createResource(BMLResourceRawType.Dataset,
+                name: "testCreateDatasetWithOptionsFail",
+                options: ["size" : "400",
+                    "fields" : ["000001" : ["name" : "field_1"]]],
+                from: resource) { (resource, error) -> Void in
+                    exp.fulfill()
+                    if let error = error {
+                        println("Error: \(error)")
+                    }
+                    XCTAssert(resource == nil && error != nil, "Pass")
+            }
+        }
+    }
+    
     func testCreateDatasetFromCSVFail() {
         
         self.runTest("testCreateDatasetFromCSVFail") { (exp) in
@@ -128,9 +185,10 @@ class BigMLKitConnectorTests: XCTestCase {
     func testListDataset() {
         
         self.runTest("testListDataset") { (exp) in
-            self.connector.listResources(BMLResourceRawType.Dataset) { (resources, error) -> Void in
+            self.connector.listResources(BMLResourceRawType.Dataset, filters: ["limit" : 10]) { (resources, error) -> Void in
                 exp.fulfill()
-                XCTAssert(count(resources) > 0 && error == nil, "Pass")
+                println("testListDataset result: \(count(resources))")
+                XCTAssert(count(resources) > 0 && count(resources) <= 10 && error == nil, "Pass")
             }
         }
     }

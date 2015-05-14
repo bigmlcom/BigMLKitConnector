@@ -51,7 +51,9 @@
     
     [self runTest:@"testListDatasetObjc" test:^(XCTestExpectation* exp) {
         
-        [_connector listResources:BMLResourceRawTypeDataset completion:^(NSArray * __nonnull resources, NSError * __nullable error) {
+        [_connector listResources:BMLResourceRawTypeDataset
+                          filters:@{}
+                       completion:^(NSArray * __nonnull resources, NSError * __nullable error) {
 
             [exp fulfill];
             XCTAssert([resources count] > 0 && error == nil, @"Pass");

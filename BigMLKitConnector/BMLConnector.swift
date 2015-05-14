@@ -50,7 +50,7 @@ extension NSMutableData {
     case Anomaly
     case Prediction
     case Project
-    case InvalidType
+    case NotAResource
     
     static let all = [File, Source, Dataset, Model, Cluster, Anomaly, Prediction, Project]
 
@@ -73,7 +73,7 @@ extension NSMutableData {
         case "project":
             self = Project
         default:
-            self = InvalidType
+            self = NotAResource
         }
     }
     
@@ -303,6 +303,17 @@ public class BMLConnector : NSObject {
         return NSURLSession(configuration : configuration)
     }
     
+    func optionsToString(options : [String : String]) {
+        
+        var result = ""
+        for (key, value) in options {
+            if (count(value) > 0) {
+                let trimmedOption = value.substringWithRange(Range<String.Index>(start: advance(value.startIndex, 1), end: advance(value.endIndex, -1)))
+                result = "\(result), \(trimmedOption)"
+            }
+        }
+    }
+    
     func dataWithRequest(request : NSURLRequest, completion:(data : NSData!, error : NSError!) -> Void) {
         
         let task = self.session.dataTaskWithRequest(request) { (data : NSData!, response : NSURLResponse!, error : NSError!) in
@@ -332,7 +343,7 @@ public class BMLConnector : NSObject {
         }
     }
     
-    func post(url : NSURL, body: [String : String], completion:(result : [String : AnyObject], error : NSError?) -> Void) {
+    func post(url : NSURL, body: [String : AnyObject], completion:(result : [String : AnyObject], error : NSError?) -> Void) {
         
         var error : NSError? = nil
         if let bodyData = NSJSONSerialization.dataWithJSONObject(body, options: nil, error:&error) {
@@ -364,17 +375,20 @@ public class BMLConnector : NSObject {
         }
     }
     
-    func upload(url : NSURL, filename: String, filePath: String, body: [String : String], completion:(result : [String : AnyObject], error : NSError?) -> Void) {
+    func upload(url : NSURL, filename: String, filePath: String, body: [String : AnyObject], completion:(result : [String : AnyObject], error : NSError?) -> Void) {
         
         let request = NSMutableURLRequest(URL:url)
         let boundary = "---------------------------14737809831466499882746641449"
 
+        var error : NSError? = nil
         let bodyData : NSMutableData = NSMutableData()
         for (name, value) in body {
-            if (count(value) > 0) {
-                bodyData.appendString("\r\n--\(boundary)\r\n")
-                bodyData.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n")
-                bodyData.appendString("\r\n\(value)")
+            if let fieldData = NSJSONSerialization.dataWithJSONObject(value, options: nil, error:&error) {
+                if let value = NSString(data: fieldData, encoding:NSUTF8StringEncoding) {
+                    bodyData.appendString("\r\n--\(boundary)\r\n")
+                    bodyData.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n")
+                    bodyData.appendString("\r\n\(value)")
+                }
             }
         }
         bodyData.appendString("\r\n--\(boundary)\r\n")
@@ -417,7 +431,7 @@ public class BMLConnector : NSObject {
     public func createResource(
         type: BMLResourceRawType,
         name: String,
-        options: [String : String],
+        options: [String : AnyObject],
         from: BMLResource,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
 
@@ -442,14 +456,14 @@ public class BMLConnector : NSObject {
                 
                 if (from.type == BMLResourceRawType.File) {
                     
-                    self.upload(url, filename:name, filePath:from.uuid, body: [String : String](), completion: completionBlock)
+                    self.upload(url, filename:name, filePath:from.uuid, body: options, completion: completionBlock)
                     
                 } else {
 
-                    let body : [String : String] = [
-                        from.type.stringValue() : from.fullUuid,
-                        "name" : name,
-                    ]
+                    var body = options
+                    body.updateValue(from.fullUuid, forKey: from.type.stringValue())
+                    body.updateValue(name, forKey: "name")
+                    
                     self.post(url, body: body, completion: completionBlock)
                 }
             }
@@ -457,10 +471,17 @@ public class BMLConnector : NSObject {
 
     public func listResources(
         type: BMLResourceRawType,
+        filters: [String : AnyObject],
         completion:(resources : [BMLResource], error : NSError?) -> Void) {
             
             if let url = self.authenticatedUrl(type.stringValue()) {
-                self.get(url) { (jsonObject, error) in
+                
+                var fullUrl : String = url.absoluteString!
+                for (key, value) in filters {
+                    fullUrl = "\(fullUrl);\(key)=\(value)"
+                }
+                
+                self.get(NSURL(string: fullUrl)!) { (jsonObject, error) in
                     
                     var localError = error;
                     var resources : [BMLResource] = []
