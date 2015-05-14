@@ -206,9 +206,7 @@ class BigMLKitConnectorTests: XCTestCase {
         
         self.runTest("testDeleteDataset") { (exp) in
             self.connector.listResources(BMLResourceRawType.Dataset, filters: ["limit" : 5]) { (resources, error) -> Void in
-                println("ERROR: \(resources)")
                 self.connector.deleteResource(BMLResourceRawType.Dataset, uuid: resources[0].uuid) { (error) -> Void in
-                    println("DELETING \(resources[0].uuid)")
                     if (error == nil) {
                         self.connector.getResource(BMLResourceRawType.Source, uuid: resources[0].uuid) { (resource, error) -> Void in
                             XCTAssert(error != nil, "Pass")
@@ -231,6 +229,41 @@ class BigMLKitConnectorTests: XCTestCase {
                     println("Error: \(error)")
                 }
                 XCTAssert(error != nil, "Pass")
+            }
+        }
+    }
+    
+    func testUpdateDataset() {
+        
+        self.runTest("testUpdateDataset") { (exp) in
+            self.connector.listResources(BMLResourceRawType.Dataset, filters: ["limit" : 5]) { (resources, error) -> Void in
+                self.connector.updateResource(BMLResourceRawType.Dataset,
+                    uuid: resources[0].uuid,
+                    values: ["name" : "testUpdateDataset"]) { (error) -> Void in
+                        if (error == nil) {
+                            self.connector.getResource(BMLResourceRawType.Source, uuid: resources[0].uuid) { (resource, error) -> Void in
+                                XCTAssert(error != nil && resource?.name == "testUpdateDataset", "Pass")
+                            }
+                        } else {
+                            XCTAssert(false, "Pass")
+                        }
+                        exp.fulfill()
+                }
+            }
+        }
+    }
+    
+    func testUpdateDatasetFail() {
+        
+        self.runTest("testUpdateDatasetFail") { (exp) in
+            self.connector.listResources(BMLResourceRawType.Dataset, filters: ["limit" : 5]) { (resources, error) -> Void in
+                self.connector.updateResource(BMLResourceRawType.Dataset,
+                    uuid: resources[0].uuid,
+                    values: [:]) { (error) -> Void in
+
+                        XCTAssert(error != nil, "Pass")
+                        exp.fulfill()
+                }
             }
         }
     }
