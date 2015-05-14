@@ -202,6 +202,39 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
+    func testDeleteDataset() {
+        
+        self.runTest("testDeleteDataset") { (exp) in
+            self.connector.listResources(BMLResourceRawType.Dataset, filters: ["limit" : 5]) { (resources, error) -> Void in
+                println("ERROR: \(resources)")
+                self.connector.deleteResource(BMLResourceRawType.Dataset, uuid: resources[0].uuid) { (error) -> Void in
+                    println("DELETING \(resources[0].uuid)")
+                    if (error == nil) {
+                        self.connector.getResource(BMLResourceRawType.Source, uuid: resources[0].uuid) { (resource, error) -> Void in
+                            XCTAssert(error != nil, "Pass")
+                        }
+                    } else {
+                        XCTAssert(false, "Pass")
+                    }
+                    exp.fulfill()
+                }
+            }
+        }
+    }
+    
+    func testDeleteDatasetFail() {
+        
+        self.runTest("testDeleteDatasetFail") { (exp) in
+            self.connector.deleteResource(BMLResourceRawType.Source, uuid: "testDeleteDatasetFail") { (error) -> Void in
+                exp.fulfill()
+                if let error = error {
+                    println("Error: \(error)")
+                }
+                XCTAssert(error != nil, "Pass")
+            }
+        }
+    }
+    
     func testGetDatasetFail() {
         
         self.runTest("testGetDatasetFail") { (exp) in

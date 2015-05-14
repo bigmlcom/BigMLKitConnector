@@ -330,6 +330,28 @@ public class BMLConnector : NSObject {
         task.resume()
     }
     
+    func delete(url : NSURL, completion:(jsonObject : AnyObject?, error : NSError?) -> Void) {
+        
+        let request = NSMutableURLRequest(URL:url)
+        request.HTTPMethod = "DELETE";
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        self.dataWithRequest(request) { (data, error) in
+            
+            var localError : NSError? = error;
+            if (error == nil) {
+                let jsonObject: AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
+                if let jsonDict = jsonObject as? [String : AnyObject],
+                    status = jsonDict["status"] as? [String : AnyObject],
+                    code = status["code"] as? Int {
+                    if (code != 204) {
+                        localError = NSError(code: code, message: status.description)
+                    }
+                }
+            }
+            completion(jsonObject: "", error: localError)
+        }
+    }
+    
     func get(url : NSURL, completion:(jsonObject : AnyObject?, error : NSError?) -> Void) {
         
         self.dataWithRequest(NSMutableURLRequest(URL:url)) { (data, error) in
@@ -506,6 +528,18 @@ public class BMLConnector : NSObject {
                         println("RESPONSE: \(jsonObject)")
                     }
                     completion(resources: resources, error : nil)
+                }
+            }
+    }
+    
+    public func deleteResource(
+        type: BMLResourceRawType,
+        uuid: String,
+        completion:(error : NSError?) -> Void) {
+            
+            if let url = self.authenticatedUrl("\(type.stringValue())/\(uuid)", arguments: [:]) {
+                self.delete(url) { (jsonObject, error) in
+                    
                 }
             }
     }
