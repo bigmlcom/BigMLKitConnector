@@ -290,7 +290,7 @@ public class BMLConnector : NSObject {
         self.username = username
         self.apiKey = apiKey
         self.mode = mode
-        self.authToken = "?username=\(username);api_key=\(apiKey);"
+        self.authToken = "username=\(username);api_key=\(apiKey);"
         
         super.init()
     }
@@ -423,9 +423,13 @@ public class BMLConnector : NSObject {
         }
     }
     
-    func authenticatedUrl(uri : String) -> NSURL? {
+    func authenticatedUrl(uri : String, arguments : [String : AnyObject]) -> NSURL? {
         
-        return NSURL(string:"https://bigml.io/dev/andromeda/\(uri)\(self.authToken)")
+        var args = ""
+        for (key, value) in arguments {
+            args = "\(key)=\(value);\(args)"
+        }
+        return NSURL(string:"https://bigml.io/dev/andromeda/\(uri)?\(args)\(self.authToken)")
     }
     
     public func createResource(
@@ -435,7 +439,7 @@ public class BMLConnector : NSObject {
         from: BMLResource,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
 
-            if let url = self.authenticatedUrl(type.stringValue()) {
+            if let url = self.authenticatedUrl(type.stringValue(), arguments:[:]) {
                 
                 let completionBlock : (result : [String : AnyObject], error : NSError?) -> Void = { (result, error) in
                     
@@ -474,14 +478,8 @@ public class BMLConnector : NSObject {
         filters: [String : AnyObject],
         completion:(resources : [BMLResource], error : NSError?) -> Void) {
             
-            if let url = self.authenticatedUrl(type.stringValue()) {
-                
-                var fullUrl : String = url.absoluteString!
-                for (key, value) in filters {
-                    fullUrl = "\(fullUrl);\(key)=\(value)"
-                }
-                
-                self.get(NSURL(string: fullUrl)!) { (jsonObject, error) in
+            if let url = self.authenticatedUrl(type.stringValue(), arguments: filters) {
+                self.get(url) { (jsonObject, error) in
                     
                     var localError = error;
                     var resources : [BMLResource] = []
@@ -517,7 +515,7 @@ public class BMLConnector : NSObject {
         uuid: String,
         completion:(resourceDict : [String : AnyObject], error : NSError?) -> Void) {
             
-            if let url = self.authenticatedUrl("\(type.stringValue())/\(uuid)") {
+            if let url = self.authenticatedUrl("\(type.stringValue())/\(uuid)", arguments:[:]) {
                 self.get(url) { (jsonObject, error) in
                     
                     var localError = error;

@@ -185,10 +185,9 @@ class BigMLKitConnectorTests: XCTestCase {
     func testListDataset() {
         
         self.runTest("testListDataset") { (exp) in
-            self.connector.listResources(BMLResourceRawType.Dataset, filters: ["limit" : 10]) { (resources, error) -> Void in
+            self.connector.listResources(BMLResourceRawType.Dataset, filters: ["limit" : 5]) { (resources, error) -> Void in
                 exp.fulfill()
-                println("testListDataset result: \(count(resources))")
-                XCTAssert(count(resources) > 0 && count(resources) <= 10 && error == nil, "Pass")
+                XCTAssert(count(resources) == 4 && error == nil, "Pass")
             }
         }
     }
