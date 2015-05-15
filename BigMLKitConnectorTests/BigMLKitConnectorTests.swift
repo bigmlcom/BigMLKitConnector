@@ -182,6 +182,72 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
+    func testCreateProject() {
+        
+        self.runTest("testCreateProject") { (exp) in
+            let resource = BMLMinimalResource(name:"testCreateProject", rawType:BMLResourceRawType.Project, uuid:"")
+            self.connector.createResource(BMLResourceRawType.Project,
+                name: "testCreateProject",
+                options: ["description" : "This is a test project", "tags" : ["a", "b", "c"]],
+                from: resource) { (resource, error) -> Void in
+                    if let error = error {
+                        println("Error: \(error)")
+                    }
+                    println("Project: \(resource?.uuid)")
+                    XCTAssert(resource != nil && error == nil, "Pass")
+                    exp.fulfill()
+            }
+        }
+    }
+    
+    func testUpdateProject() {
+        
+        self.runTest("testCreateProject") { (exp) in
+            let resource = BMLMinimalResource(name:"testCreateProject", rawType:BMLResourceRawType.Project, uuid:"")
+            self.connector.createResource(BMLResourceRawType.Project,
+                name: "testCreateProject",
+                options: ["description" : "This is a test project", "tags" : ["a", "b", "c"]],
+                from: resource) { (resource, error) -> Void in
+                    if let resource = resource {
+                        self.connector.updateResource(BMLResourceRawType.Project,
+                            uuid: resource.uuid,
+                            values: ["name" : "testUpdateProject"]) { (error) -> Void in
+                                if (error == nil) {
+                                    self.connector.getResource(BMLResourceRawType.Project, uuid: resource.uuid) { (resource, error) -> Void in
+                                        XCTAssert(error != nil && resource?.name == "testUpdateProject", "Pass")
+                                    }
+                                } else {
+                                    XCTAssert(false, "Pass")
+                                }
+                                exp.fulfill()
+                        }
+                    } else {
+                        println("Error: \(error)")
+                    }
+                    XCTAssert(resource != nil && error == nil, "Pass")
+                    exp.fulfill()
+            }
+        }
+    }
+    
+    func testDeleteProject() {
+        
+        self.runTest("testDeleteProject") { (exp) in
+            self.connector.listResources(BMLResourceRawType.Project, filters: ["limit" : 5]) { (resources, error) -> Void in
+                self.connector.deleteResource(BMLResourceRawType.Project, uuid: resources[0].uuid) { (error) -> Void in
+                    if (error == nil) {
+                        self.connector.getResource(BMLResourceRawType.Project, uuid: resources[0].uuid) { (resource, error) -> Void in
+                            XCTAssert(error != nil, "Pass")
+                        }
+                    } else {
+                        XCTAssert(false, "Pass")
+                    }
+                    exp.fulfill()
+                }
+            }
+        }
+    }
+    
     func testListDataset() {
         
         self.runTest("testListDataset") { (exp) in

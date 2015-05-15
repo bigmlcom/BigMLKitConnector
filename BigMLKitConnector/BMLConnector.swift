@@ -156,6 +156,10 @@ public func == (left : BMLResourceType, right : BMLResourceRawType) -> Bool {
     return left.type == right
 }
 
+public func != (left : BMLResourceType, right : BMLResourceRawType) -> Bool {
+    return left.type != right
+}
+
 public typealias BMLResourceUuid = String
 public typealias BMLResourceFullUuid = String
 
@@ -513,9 +517,11 @@ public class BMLConnector : NSObject {
                 } else {
 
                     var body = options
-                    body.updateValue(from.fullUuid, forKey: from.type.stringValue())
                     body.updateValue(name, forKey: "name")
-                    
+                    if (from.type != BMLResourceRawType.Project) {
+                        body.updateValue(from.fullUuid, forKey: from.type.stringValue())
+                    }
+
                     self.post(url, body: body, completion: completionBlock)
                 }
             }
@@ -640,6 +646,9 @@ public class BMLConnector : NSObject {
     func trackResourceStatus(resource : BMLResource,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
     
+        if (resource.type == BMLResourceRawType.Project) {
+            completion(resource: resource, error: nil)
+        }
         self.getIntermediateResource(resource.type.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
             
             var localError = error
