@@ -338,7 +338,7 @@ public class BMLConnector : NSObject {
         self.dataWithRequest(request) { (data, error) in
             
             var localError : NSError? = error;
-            if (error == nil) {
+            if (localError == nil) {
                 let jsonObject: AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:nil)
                 if let jsonDict = jsonObject as? [String : AnyObject],
                     status = jsonDict["status"] as? [String : AnyObject],
@@ -365,7 +365,6 @@ public class BMLConnector : NSObject {
                 var localError : NSError? = error;
                 if (error == nil) {
                     let jsonObject: AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:nil)
-                    println("RESPONSE: \(jsonObject)")
                     if let jsonDict = jsonObject as? [String : AnyObject],
                         status = jsonDict["status"] as? [String : AnyObject],
                         code = jsonDict["code"] as? Int {
@@ -412,13 +411,11 @@ public class BMLConnector : NSObject {
                     let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
                     if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                         result = jsonDict
-//                        println("RESPONSE: \(jsonObject)")
                         if (code != 201) {
                             localError = NSError(code: code, message: jsonDict["status"]!.description)
                         }
                     } else {
                         localError = NSError(code:-10001, message:"Bad response format")
-//                        println("RESPONSE: \(jsonObject)")
                     }
                 }
                 completion(result: result, error: localError)
@@ -463,13 +460,11 @@ public class BMLConnector : NSObject {
                 let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
                 if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                     result = jsonDict
-//                    println("RESPONSE: \(jsonObject)")
                     if (code != 201) {
                         localError = NSError(code: code, message: jsonDict["status"]!.description)
                     }
                 } else {
                     localError = NSError(code:-10001, message:"Bad response format")
-//                    println("RESPONSE: \(jsonObject)")
                 }
             }
             completion(result: result, error: error)
