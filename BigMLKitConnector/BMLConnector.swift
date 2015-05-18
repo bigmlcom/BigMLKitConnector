@@ -36,8 +36,8 @@ extension NSMutableData {
 
 @objc public enum BMLMode : Int {
 
-    case BMLDevelopmentMode
-    case BMLProductionMode
+    case Development
+    case Production
 }
 
 @objc public enum BMLResourceRawType : Int, StringLiteralConvertible {
@@ -481,7 +481,8 @@ public class BMLConnector : NSObject {
         for (key, value) in arguments {
             args = "\(key)=\(value);\(args)"
         }
-        return NSURL(string:"https://bigml.io/dev/andromeda/\(uri)?\(args)\(self.authToken)")
+        let modeSelector = self.mode == BMLMode.Development ? "dev/" : ""
+        return NSURL(string:"https://bigml.io/\(modeSelector)andromeda/\(uri)?\(args)\(self.authToken)")
     }
     
     public func createResource(
