@@ -48,6 +48,7 @@ extension NSMutableData {
     case Model
     case Cluster
     case Anomaly
+    case Ensemble
     case Prediction
     case Project
     case NotAResource
@@ -70,6 +71,8 @@ extension NSMutableData {
             self = Prediction
         case "anomaly":
             self = Anomaly
+        case "ensemble":
+            self = Ensemble
         case "project":
             self = Project
         default:
@@ -104,6 +107,8 @@ extension NSMutableData {
         case Prediction:
             return "prediction"
         case Anomaly:
+            return "anomaly"
+        case Ensemble:
             return "anomaly"
         case Project:
             return "project"
@@ -222,7 +227,7 @@ func != (left : BMLResourceStatus, right : BMLResourceStatus) -> Bool {
     var uuid : BMLResourceUuid { get }
     var fullUuid : BMLResourceFullUuid { get }
     
-    var definition : [String : AnyObject] { get }
+    var jsonDefinition : [String : AnyObject] { get }
     
     var status : BMLResourceStatus { get set }
     var progress : Float { get set }
@@ -235,7 +240,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
     public var name : String
     public var type : BMLResourceType
     
-    public var definition : [String : AnyObject]
+    public var jsonDefinition : [String : AnyObject]
 
     public dynamic var status : BMLResourceStatus
     public dynamic var progress : Float
@@ -254,7 +259,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.uuid = uuid
         self.status = BMLResourceStatus.Undefined
         self.progress = 0.0
-        self.definition = [:];
+        self.jsonDefinition = [:];
     }
     
    
@@ -265,7 +270,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.uuid = uuid
         self.status = BMLResourceStatus.Undefined
         self.progress = 0.0
-        self.definition = [:];
+        self.jsonDefinition = [:];
     }
     
     public required init(name : String, fullUuid : String, definition : [String : AnyObject]) {
@@ -276,7 +281,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
         self.uuid = components[1]
         self.status = BMLResourceStatus.Undefined
         self.progress = 0.0
-        self.definition = definition;
+        self.jsonDefinition = definition;
     }
 }
 
