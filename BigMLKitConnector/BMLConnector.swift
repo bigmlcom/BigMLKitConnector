@@ -118,10 +118,14 @@ extension NSMutableData {
     }
 }
 
-@objc public class BMLResourceType : NSObject, StringLiteralConvertible, NSCopying {
+@objc public class BMLResourceType : NSObject, StringLiteralConvertible, NSCopying, Printable {
 
     public var type : BMLResourceRawType
     
+    public override var description: String {
+        return self.stringValue()
+    }
+
     public required init(rawType value: BMLResourceRawType) {
         self.type = value
         super.init()
