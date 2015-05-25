@@ -231,7 +231,7 @@ func != (left : BMLResourceStatus, right : BMLResourceStatus) -> Bool {
     var uuid : BMLResourceUuid { get }
     var fullUuid : BMLResourceFullUuid { get }
     
-    var jsonDefinition : [String : AnyObject] { get }
+    var jsonDefinition : [String : AnyObject] { get set }
     
     var status : BMLResourceStatus { get set }
     var progress : Float { get set }
@@ -680,6 +680,7 @@ public class BMLConnector : NSObject {
                         }
                     } else if (statusCode == BMLResourceStatus.Ended) {
                         resource.status = statusCode
+                        resource.jsonDefinition = resourceDict
                         completion(resource: resource, error: error)
                     }
                 } else {
