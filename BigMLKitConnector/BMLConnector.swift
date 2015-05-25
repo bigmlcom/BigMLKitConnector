@@ -40,7 +40,7 @@ extension NSMutableData {
     case Production
 }
 
-@objc public enum BMLResourceRawType : Int, StringLiteralConvertible {
+@objc public enum BMLResourceType : Int, StringLiteralConvertible {
     
     case File
     case Source
@@ -85,11 +85,11 @@ extension NSMutableData {
     }
     
     public init(extendedGraphemeClusterLiteral value: String) {
-        self = BMLResourceRawType(value)
+        self = BMLResourceType(value)
     }
     
     public init(unicodeScalarLiteral value: String) {
-        self = BMLResourceRawType(value)
+        self = BMLResourceType(value)
     }
 
     public func stringValue() -> String {
@@ -118,21 +118,21 @@ extension NSMutableData {
     }
 }
 
-@objc public class BMLResourceType : NSObject, StringLiteralConvertible, NSCopying, Printable {
+@objc public class BMLResourceTypeIdentifier : NSObject, StringLiteralConvertible, NSCopying, Printable {
 
-    public var type : BMLResourceRawType
+    public var type : BMLResourceType
     
     public override var description: String {
         return self.stringValue()
     }
 
-    public required init(rawType value: BMLResourceRawType) {
+    public required init(rawType value: BMLResourceType) {
         self.type = value
         super.init()
     }
     
     public required init(stringLiteral value: String) {
-        self.type = BMLResourceRawType(stringLiteral: value)
+        self.type = BMLResourceType(stringLiteral: value)
         super.init()
     }
     
@@ -141,12 +141,12 @@ extension NSMutableData {
     }
     
     public required init(extendedGraphemeClusterLiteral value: String) {
-        self.type = BMLResourceRawType(value)
+        self.type = BMLResourceType(value)
         super.init()
     }
     
     public required init(unicodeScalarLiteral value: String) {
-        self.type = BMLResourceRawType(value)
+        self.type = BMLResourceType(value)
         super.init()
     }
     
@@ -156,16 +156,15 @@ extension NSMutableData {
     
     public func copyWithZone(zone: NSZone) -> AnyObject {
         
-        return BMLResourceType(rawType: self.type)
+        return BMLResourceTypeIdentifier(rawType: self.type)
     }
-
 }
 
-public func == (left : BMLResourceType, right : BMLResourceRawType) -> Bool {
+public func == (left : BMLResourceTypeIdentifier, right : BMLResourceType) -> Bool {
     return left.type == right
 }
 
-public func != (left : BMLResourceType, right : BMLResourceRawType) -> Bool {
+public func != (left : BMLResourceTypeIdentifier, right : BMLResourceType) -> Bool {
     return left.type != right
 }
 
@@ -267,10 +266,10 @@ public class BMLMinimalResource : NSObject, BMLResource {
     }
     
    
-    public required init(name: String, rawType: BMLResourceRawType, uuid: String) {
+    public required init(name: String, rawType: BMLResourceType, uuid: String) {
         
         self.name = name
-        self.type = BMLResourceType(rawType: rawType)
+        self.type = rawType
         self.uuid = uuid
         self.status = BMLResourceStatus.Undefined
         self.progress = 0.0
@@ -495,7 +494,7 @@ public class BMLConnector : NSObject {
     }
     
     public func createResource(
-        type: BMLResourceRawType,
+        type: BMLResourceType,
         name: String,
         options: [String : AnyObject],
         from: BMLResource,
@@ -520,7 +519,7 @@ public class BMLConnector : NSObject {
                     }
                 }
                 
-                if (from.type == BMLResourceRawType.File) {
+                if (from.type == BMLResourceType.File) {
                     
                     self.upload(url, filename:name, filePath:from.uuid, body: options, completion: completionBlock)
                     
@@ -528,7 +527,7 @@ public class BMLConnector : NSObject {
 
                     var body = options
                     body.updateValue(name, forKey: "name")
-                    if (from.type != BMLResourceRawType.Project) {
+                    if (from.type != BMLResourceType.Project) {
                         body.updateValue(from.fullUuid, forKey: from.type.stringValue())
                     }
 
@@ -538,7 +537,7 @@ public class BMLConnector : NSObject {
     }
 
     public func listResources(
-        type: BMLResourceRawType,
+        type: BMLResourceType,
         filters: [String : AnyObject],
         completion:(resources : [BMLResource], error : NSError?) -> Void) {
             
@@ -575,7 +574,7 @@ public class BMLConnector : NSObject {
     }
     
     public func deleteResource(
-        type: BMLResourceRawType,
+        type: BMLResourceType,
         uuid: String,
         completion:(error : NSError?) -> Void) {
             
@@ -587,7 +586,7 @@ public class BMLConnector : NSObject {
     }
     
     public func updateResource(
-        type: BMLResourceRawType,
+        type: BMLResourceType,
         uuid: String,
         values: [String : AnyObject],
         completion:(error : NSError?) -> Void) {
@@ -601,7 +600,7 @@ public class BMLConnector : NSObject {
     }
     
     func getIntermediateResource(
-        type: BMLResourceRawType,
+        type: BMLResourceType,
         uuid: String,
         completion:(resourceDict : [String : AnyObject], error : NSError?) -> Void) {
             
@@ -622,7 +621,7 @@ public class BMLConnector : NSObject {
     }
     
     public func getResource(
-        type: BMLResourceRawType,
+        type: BMLResourceType,
         uuid: String,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
             
@@ -656,10 +655,10 @@ public class BMLConnector : NSObject {
     func trackResourceStatus(resource : BMLResource,
         completion:(resource : BMLResource?, error : NSError?) -> Void) {
     
-        if (resource.type == BMLResourceRawType.Project) {
+        if (resource.type == BMLResourceType.Project) {
             completion(resource: resource, error: nil)
         }
-        self.getIntermediateResource(resource.type.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
+        self.getIntermediateResource(resource.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
             
             var localError = error
             if (localError == nil) {
