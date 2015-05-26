@@ -118,7 +118,7 @@ extension NSMutableData {
     }
 }
 
-@objc public class BMLResourceTypeIdentifier : NSObject, StringLiteralConvertible, NSCopying, Printable {
+@objc public class BMLResourceTypeIdentifier : NSObject, StringLiteralConvertible, Printable {
 
     public var type : BMLResourceType
     
@@ -152,11 +152,6 @@ extension NSMutableData {
     
     public func stringValue() -> String {
         return self.type.stringValue()
-    }
-    
-    public func copyWithZone(zone: NSZone) -> AnyObject {
-        
-        return BMLResourceTypeIdentifier(rawType: self.type)
     }
 }
 
