@@ -30,7 +30,7 @@
     
     _connector = [[BMLConnector alloc] initWithUsername:dict[@"username"]
                                                  apiKey:dict[@"apiKey"]
-                                                   mode:BMLModeBMLDevelopmentMode];
+                                                   mode:BMLModeDevelopment];
 }
 
 - (void)tearDown {
@@ -51,7 +51,7 @@
     
     [self runTest:@"testListDatasetObjc" test:^(XCTestExpectation* exp) {
         
-        [_connector listResources:BMLResourceRawTypeDataset
+        [_connector listResources:BMLResourceTypeDataset
                           filters:@{}
                        completion:^(NSArray * __nonnull resources, NSError * __nullable error) {
 
@@ -68,10 +68,10 @@
         
         BMLMinimalResource* resource = [[BMLMinimalResource alloc]
                                         initWithName:@"testCreateAnomalyObjC"
-                                        rawType:BMLResourceRawTypeDataset
+                                        rawType:BMLResourceTypeDataset
                                         uuid:@"554a3b4977920c09e3000431"];
         
-        [_connector createResource:BMLResourceRawTypeAnomaly
+        [_connector createResource:BMLResourceTypeAnomaly
                               name:@"testCreateAnomalyObjc"
                            options:@{}
                               from:resource

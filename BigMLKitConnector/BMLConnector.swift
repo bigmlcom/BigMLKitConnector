@@ -34,6 +34,53 @@ extension NSMutableData {
     }
 }
 
+extension Dictionary {
+    init(_ elements: [Element]){
+        self.init()
+        for (k, v) in elements {
+            self[k] = v
+        }
+    }
+    
+    func map<U>(transform: Value -> U) -> [Key : U] {
+        return Dictionary<Key, U>(Swift.map(self, { (key, value) in (key, transform(value)) }))
+    }
+    
+    func map<T : Hashable, U>(transform: (Key, Value) -> (T, U)) -> [T : U] {
+        return Dictionary<T, U>(Swift.map(self, transform))
+    }
+    
+    func filter(includeElement: Element -> Bool) -> [Key : Value] {
+        return Dictionary(Swift.filter(self, includeElement))
+    }
+    
+    func reduce<U>(initial: U, @noescape combine: (U, Element) -> U) -> U {
+        return Swift.reduce(self, initial, combine)
+    }
+}
+
+class BMLRegex {
+    
+    let internalExpression: NSRegularExpression?
+    let pattern: String
+    
+    init(_ pattern: String) {
+        self.pattern = pattern
+        var error: NSError?
+        self.internalExpression = NSRegularExpression(pattern: pattern, options: .CaseInsensitive, error: &error)
+    }
+    
+    func test(input: String) -> Bool {
+        let matches = self.internalExpression?.matchesInString(input, options: nil, range:NSMakeRange(0, count(input)))
+        return matches?.count > 0
+    }
+}
+
+infix operator =~ { associativity left precedence 160 }
+func =~ (input: String, pattern: String) -> Bool {
+    return BMLRegex(pattern).test(input)
+}
+
 @objc public enum BMLMode : Int {
 
     case Development
@@ -544,7 +591,7 @@ public class BMLConnector : NSObject {
                     if let jsonDict = jsonObject as? [String : AnyObject],
                         jsonResources = jsonDict["objects"] as? [AnyObject] {
 
-                        resources = map(jsonResources) {
+                        resources = jsonResources.map {
                             
                             if let type = $0["resource"] as? String,
                                 resourceDict = $0 as? [String : AnyObject] {
@@ -689,4 +736,323 @@ public class BMLConnector : NSObject {
         }
     }
 
+}
+
+func plural(string : String, multiplicity : Int) -> String {
+    
+    if (multiplicity == 1) {
+        return string
+    }
+    return "\(string)s"
+}
+
+class Predicate {
+    
+    static let TM_TOKENS = "tokens_only"
+    static let TM_FULL_TERMS = "full_terms_only"
+    static let TM_ALL = "all"
+    static let FULL_TERM_PATTERN = "^.+\\b.+$"
+    
+    var op : String
+    var field : String
+    var value : Int
+    var term : String?
+    var missing : Bool
+    
+    init (op : String, field : String, value : Int, term : String? = .None) {
+        
+        self.op = op
+        self.field = field
+        self.value = value
+        self.term = term
+        self.missing = false
+        if self.op =~ "*$" {
+            self.missing = true
+            self.op = self.op.substringToIndex(advance(self.op.startIndex, count(self.op)-1))
+        }
+    }
+    
+    func isFullTerm(fields : [String : AnyObject]) -> Bool {
+        
+        if let term = self.term,
+            fieldDict = fields[self.field] as? [String : AnyObject],
+            options = fieldDict["term_analysis"] as? [String : AnyObject] {
+
+                if let tokenMode = options["token_mode"] as? String {
+                    if tokenMode == Predicate.TM_FULL_TERMS {
+                        return true
+                    }
+                    if tokenMode == Predicate.TM_ALL {
+                        return term =~ Predicate.FULL_TERM_PATTERN
+                    }
+                }
+        }
+        return false
+    }
+    
+    func rule(fields : [String : AnyObject], label : String = "name") -> String {
+        
+        if let fieldDict = fields[self.field] as? [String : AnyObject],
+            name = fieldDict[label] as? String {
+
+                let fullTerm = self.isFullTerm(fields)
+                let relationMissing = self.missing ? " or missing " : ""
+                if let term = self.term {
+                    var relationSuffix = ""
+                    let relationLiteral : String
+                    if ((self.op == "<" && self.value <= 1) || (self.op == "<=" && self.value == 0)) {
+                        relationLiteral = fullTerm ? " is not equal to " : " does not contain "
+                    } else {
+                        relationLiteral = fullTerm ? " is equal to " : " contains "
+                        if !fullTerm {
+                            if self.op != ">" || self.value != 0 {
+                                let times = plural("time", self.value)
+                                if self.op == ">=" {
+                                    relationSuffix = "\(self.value) \(times) at most"
+                                } else if self.op == "<=" {
+                                    relationSuffix = "no more than \(self.value) \(times)"
+                                } else if self.op == ">" {
+                                    relationSuffix = "more than \(self.value) \(times)"
+                                } else if self.op == "<" {
+                                    relationSuffix = "less than \(self.value) \(times)"
+                                }
+                            }
+                        }
+                    }
+                    return "\(name) \(relationLiteral) \(term) \(relationSuffix)\(relationMissing)"
+                }
+                //-- We should handle the case where self.value is None -- but is not clear what this could mean
+                return "\(name) \(self.op) \(self.value) \(relationMissing)"
+        } else {
+            return ""
+        }
+    }
+}
+
+class Predicates {
+    
+    let predicates : [Predicate]
+    
+    init(predicates : [AnyObject]) {
+        self.predicates = predicates.map() {
+            assert($0["term"] != nil, "TERM NOT PASSED IN PREDICATE -- TBD")
+
+            if let p = $0 as? String {
+                return Predicate(op: "", field: "", value: 1, term: "")
+            }
+            if let p = $0 as? [String : AnyObject] {
+                if let op = p["op"] as? String, field = p["field"] as? String, value = p["value"] as? Int, term = p["term"] as? String {
+                    return Predicate(op: op, field: field, value: value, term: term)
+                }
+            }
+            assert(false, "COULD NOT CREATE PREDICATE")
+        }
+    }
+    
+    func rule(fields : [String : AnyObject], label : String = "name") -> String {
+
+        let strings = self.predicates.map() {
+            return $0.rule(fields, label: label)
+        }
+        return " and ".join(strings)
+    }
+
+    func apply(input : [String : AnyObject], fields : [String : AnyObject]) -> Bool {
+        assert(false, "TBD")
+        return true
+    }
+}
+
+class AnomalyTree {
+    
+    internal let fields : [String : String]
+    var predicates : Predicates
+    var id : AnyObject?
+    var children : [AnomalyTree] = []
+
+    init(tree : [String : AnyObject], fields : [String : String]) {
+        
+        self.fields = fields
+        self.predicates = Predicates(predicates: ["True"])
+//        if let predicates = tree["predicates"] as? String {
+//            if predicates == "True" {
+//                self.predicates = Predicates(predicates: ["True"])
+//            }
+//        }
+        if let predicates = tree["predicates"] as? [[String : AnyObject]] {
+            self.predicates = Predicates(predicates: predicates)
+            self.id = .None
+        }
+        if let children = tree["children"] as? [[String : AnyObject]] {
+            self.children = children.map {
+                AnomalyTree(tree: $0, fields: self.fields)
+            }
+        }
+    }
+    
+    func depth(input : [String : AnyObject], path : [String] = [], depth : Int = 0) -> (Int, [String]) {
+        
+        var depth = depth
+        if depth == 0 {
+            if !self.predicates.apply(input, fields: self.fields) {
+                return (depth, path)
+            }
+            depth += 1
+        }
+        var path = path
+        for child in self.children {
+            if child.predicates.apply(input, fields: self.fields) {
+                path.append(child.predicates.rule(self.fields))
+                return child.depth(input, path: path, depth: depth+1)
+            }
+        }
+        return (0, [""])
+    }
+}
+
+let DEPTH_FACTOR : Float = 0.5772156649
+
+class FieldedResource {
+ 
+    internal let fields : [String : String]
+    internal var invertedFields : [String : String] = [:]
+    internal let objectiveId : String?
+    internal let locale : String?
+    internal let missingTokens : [String]?
+    
+    init(fields : [String : String],
+        objectiveId : String? = .None,
+        locale : String? = .None,
+        missingTokens : [String]? = .None) {
+        
+            self.fields = fields
+            self.objectiveId = objectiveId
+            self.locale = locale
+            self.missingTokens = missingTokens
+            self.invertedFields = self.invertFields()
+    }
+    
+    func normalizedValue(_ : AnyObject) -> String? {
+        
+        return .None
+    }
+    
+    func invertFields() -> [String : String] {
+        
+        var invertedFields : [String : String] = [:]
+        for (key, value) in self.fields {
+            invertedFields[value] = key
+        }
+        return invertedFields
+    }
+    
+    func filterInputData(input : [String : AnyObject], byName : Bool = true) -> [String : AnyObject] {
+
+        let fields = byName ? self.invertedFields : self.fields
+        var output : [String : AnyObject] = [:]
+        for (key, value) in input {
+            if (self.normalizedValue(value) != .None) {
+                if let k = fields[key] {
+                    if self.objectiveId == .None || k != self.objectiveId {
+                        output[k] = value
+                    }
+                }
+//                if byName {
+//                    if let k = fields[key] {
+//                        if self.objectiveId == .None || k != self.objectiveId {
+//                            output[k] = value
+//                        }
+//                    }
+//                } else {
+//                    if let k = self.fields[key] {
+//                        if self.objectiveId == .None || k != self.objectiveId {
+//                            output[key] = value
+//                        }
+//                    }
+//                }
+            }
+        }
+        return output
+    }
+
+}
+
+class Anomaly : FieldedResource {
+    
+    let sampleSize : Float?
+    let inputFields : [String : AnyObject]?
+    var meanDepth : Float?
+    var expectedMeanDepth : Float? = .None
+    var iforest : [AnomalyTree?]?
+    
+    init(anomaly : BMLResource) {
+    
+        assert(anomaly.type == BMLResourceType.Anomaly, "Wrong resource passed in -- anomaly expected")
+        
+        if let object = anomaly.jsonDefinition["object"] as? [String : AnyObject],
+            sampleSize = object["sample_size"] as? Float,
+            inputFields = object["input_fields"] as? [String : AnyObject] {
+                
+            self.sampleSize = sampleSize
+            self.inputFields = inputFields
+                
+        } else {
+            
+            self.sampleSize = .None
+            self.inputFields = .None
+        }
+        if let model = anomaly.jsonDefinition["model"] as? [String : AnyObject],
+            fields = model["fields"] as? [String : String] {
+                
+            if let topAnomalies = model["top_anomalies"] as? [AnyObject] {
+                
+                super.init(fields: fields)
+
+                self.meanDepth = model["mean_depth"] as? Float
+                if let status = anomaly.jsonDefinition["status"] as? [String : AnyObject],
+                    code = status["code"] as? BMLResourceStatus {
+                    
+                    if (code == BMLResourceStatus.Ended) {
+                        if let sampleSize = self.sampleSize, let meanDepth = self.meanDepth {
+                            let defaultDepth = 2 * (DEPTH_FACTOR + log(sampleSize - 1) - ((sampleSize - 1) / sampleSize))
+                            self.expectedMeanDepth = min(meanDepth, defaultDepth)
+                        } else {
+                            //-- HANDLE ERROR HERE: anomaly is not complete
+                        }
+                        if let iforest = model["trees"] as? [AnyObject] {
+                            self.iforest = iforest.map {
+                                if let tree = $0 as? [String : AnyObject],
+                                    root = tree["root"] as? [String : AnyObject] {
+                                    return AnomalyTree(tree: root, fields: self.fields)
+                                } else {
+                                    return .None
+                                }
+                            }
+                        }
+                    } else {
+                        //-- HANDLE ERROR HERE: anomaly is not complete
+                    }
+                }
+            } else {
+                self.meanDepth = 0
+                super.init(fields: fields)
+            }
+        } else {
+            self.meanDepth = 0
+            super.init(fields: [:])
+        }
+    }
+    
+    func score(input : [String : AnyObject], byName : Bool = true) -> Double {
+        
+        assert(self.iforest != nil, "Could not find forest info. The anomaly was possibly not completely created")
+        let inputData = self.filterInputData(input, byName: byName)
+        var depthSum : Float = 0
+        for tree in self.iforest! {
+//            depthSum += tree.depth(input)[0]
+        }
+        let observedMeanDepth = depthSum / Float(self.iforest!.count)
+        return pow(Double(2), Double(-observedMeanDepth / self.expectedMeanDepth!))
+    }
+    
 }
