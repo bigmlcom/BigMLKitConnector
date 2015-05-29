@@ -43,11 +43,33 @@ class BigMLKitConnectorPredicateTests: XCTestCase {
 
     func testCreatePredicateRule() {
         
-        let p = Predicate(op: ">=", field: "F1", value: 1, term:"T")
-        let rule = p.rule(["F1" : ["a" : "b", "name" : "F1"]])
-        println("Predicate: \(rule)")
+        let test = { (term : String, fields : [String : AnyObject]) -> Bool in
+         
+            var p = Predicate(op: ">=", field: "F1", value: 1, term: term)
+            var rule = p.rule(fields)
+            println("Predicate: \(rule)")
+            
+            p = Predicate(op: ">", field: "F1", value: 1, term: term)
+            rule = p.rule(fields)
+            println("Predicate: \(rule)")
+            
+            p = Predicate(op: ">", field: "F1", value: 0, term: term)
+            rule = p.rule(fields)
+            println("Predicate: \(rule)")
+            
+            p = Predicate(op: "<=", field: "F1", value: 0, term: term)
+            rule = p.rule(fields)
+            println("Predicate: \(rule)")
+            
+            return true
+        }
+        
+        test("T.T", ["F1" : ["name": "f1", "term_analysis" : [ "token_mode" : "all" ]]])
+        test("T", ["F1" : ["a" : "b", "name" : "F1"]])
+        test("A.A", ["F1" : ["a" : "b", "name" : "F1"]])
+        test("A.A", ["F2" : ["a" : "b", "name" : "F1"]])
+        
         XCTAssert(true, "Pass")
     }
-    
 
 }
