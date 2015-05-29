@@ -96,20 +96,33 @@ class BigMLKitConnectorPredicateTests: XCTestCase {
         XCTAssert(true, "Pass")
     }
 
-    func testNumPredicates() {
+    func testNumPredicatesEval() {
         
         let term1 = "T"
         let term2 = "T.T"
         let ps = Predicates(predicates: [
             "TRUE",
             ["op" : ">=", "field" : "F1", "value" : 1, "term" : term1],
-            ["op" : "<", "field" : "F2", "value" : 1, "term" : term1]])
+            ["op" : "<=", "field" : "F2", "value" : 1, "term" : term1]])
         
-        println(ps.rule(["F1" : ["F1" : 1],
-            "F2" : ["F2" : 2]]))
+        let result = ps.apply(["F1" : 5, "F2" : 1], fields: ["F1" : [:], "F2" : [:]])
+        XCTAssert(result, "Pass")
     }
     
-    func testAlphaPredicates() {
+    func testNumPredicatesEvalFail() {
+        
+        let term1 = "T"
+        let term2 = "T.T"
+        let ps = Predicates(predicates: [
+            "TRUE",
+            ["op" : ">=", "field" : "F1", "value" : 1, "term" : term1],
+            ["op" : ">", "field" : "F2", "value" : 1, "term" : term1]])
+        
+        let result = ps.apply(["F1" : 5, "F2" : 1], fields: ["F1" : [:], "F2" : [:]])
+        XCTAssert(!result, "Pass")
+    }
+    
+    func testAlphaPredicatesRule() {
         
         let term1 = "T"
         let term2 = "T.T"
