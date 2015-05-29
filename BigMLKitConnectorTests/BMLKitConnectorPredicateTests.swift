@@ -26,7 +26,31 @@ class BigMLKitConnectorPredicateTests: XCTestCase {
         let p = Predicate(op: "A", field: "F1", value: 1, term:"T")
         XCTAssert(true, "Pass")
     }
+    
+    func testCreateNumPredicateEval() {
+        
+        var p = Predicate(op: ">", field: "F1", value: 1, term:.None)
+        var res = p.apply(["F1" : 0.5], fields: ["F1" : [:]])
+        XCTAssert(!res, "Pass")
 
+        p = Predicate(op: ">", field: "F1", value: 1, term:.None)
+        res = p.apply(["F1" : 100], fields: ["F1" : [:]])
+        XCTAssert(res, "Pass")
+        
+        p = Predicate(op: ">=", field: "F1", value: 1, term:.None)
+        res = p.apply(["F1" : 1], fields: ["F1" : [:]])
+        XCTAssert(res, "Pass")
+        
+        p = Predicate(op: "<=", field: "F1", value: 1, term:.None)
+        res = p.apply(["F1" : 0.5], fields: ["F1" : [:]])
+        XCTAssert(res, "Pass")
+        
+        p = Predicate(op: "=", field: "F1", value: 5, term:.None)
+        res = p.apply(["F1" : 5], fields: ["F1" : [:]])
+        XCTAssert(res, "Pass")
+        
+    }
+    
     func testCreatePredicateFullTerm() {
         
         let p = Predicate(op: "A", field: "F1", value: 1, term:"T.T")
@@ -72,4 +96,35 @@ class BigMLKitConnectorPredicateTests: XCTestCase {
         XCTAssert(true, "Pass")
     }
 
+    func testNumPredicates() {
+        
+        let term1 = "T"
+        let term2 = "T.T"
+        let ps = Predicates(predicates: [
+            "TRUE",
+            ["op" : ">=", "field" : "F1", "value" : 1, "term" : term1],
+            ["op" : "<", "field" : "F2", "value" : 1, "term" : term1]])
+        
+        println(ps.rule(["F1" : ["F1" : 1],
+            "F2" : ["F2" : 2]]))
+    }
+    
+    func testAlphaPredicates() {
+        
+        let term1 = "T"
+        let term2 = "T.T"
+        let ps = Predicates(predicates: [
+            "TRUE",
+            ["op" : ">=", "field" : "F1", "value" : 1, "term" : term1],
+            ["op" : ">", "field" : "F1", "value" : 1, "term" : term1],
+            ["op" : ">", "field" : "F1", "value" : 0, "term" : term1],
+            ["op" : "<=", "field" : "F1", "value" : 0, "term" : term1],
+            ["op" : ">=", "field" : "F2", "value" : 1, "term" : term2],
+            ["op" : ">", "field" : "F2", "value" : 1, "term" : term2],
+            ["op" : ">", "field" : "F2", "value" : 0, "term" : term2],
+            ["op" : "<=", "field" : "F2", "value" : 0, "term" : term2]])
+        
+        println(ps.rule(["F1" : ["a" : "b", "name" : "F1"],
+            "F2" : ["name": "f2", "term_analysis" : [ "token_mode" : "all" ]]]))
+    }
 }

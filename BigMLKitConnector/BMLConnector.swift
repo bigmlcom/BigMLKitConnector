@@ -755,7 +755,7 @@ class Predicate {
     
     var op : String
     var field : String
-    var value : Int
+    var value : Int?
     var term : String?
     var missing : Bool
     
@@ -805,16 +805,18 @@ class Predicate {
                     } else {
                         relationLiteral = fullTerm ? " is equal to " : " contains "
                         if !fullTerm {
-                            if self.op != ">" || self.value != 0 {
-                                let times = plural("time", self.value)
-                                if self.op == ">=" {
-                                    relationSuffix = "\(self.value) \(times) at most"
-                                } else if self.op == "<=" {
-                                    relationSuffix = "no more than \(self.value) \(times)"
-                                } else if self.op == ">" {
-                                    relationSuffix = "more than \(self.value) \(times)"
-                                } else if self.op == "<" {
-                                    relationSuffix = "less than \(self.value) \(times)"
+                            if let value = self.value {
+                                if self.op != ">" || value != 0 {
+                                    let times = plural("time", value)
+                                    if self.op == ">=" {
+                                        relationSuffix = "\(self.value) \(times) at most"
+                                    } else if self.op == "<=" {
+                                        relationSuffix = "no more than \(self.value) \(times)"
+                                    } else if self.op == ">" {
+                                        relationSuffix = "more than \(self.value) \(times)"
+                                    } else if self.op == "<" {
+                                        relationSuffix = "less than \(self.value) \(times)"
+                                    }
                                 }
                             }
                         }
@@ -824,8 +826,50 @@ class Predicate {
                 //-- We should handle the case where self.value is None -- but is not clear what this could mean
                 return "\(name) \(self.op) \(self.value) \(relationMissing)"
         } else {
-            return ""
+            return self.op
         }
+    }
+    
+    func termCount(text : String, forms : [String], options : [String : AnyObject]?) -> Int {
+        assert(false, "TBD")
+        return 0
+    }
+    
+    func apply(input : [String : AnyObject], fields : [String : AnyObject]) -> Bool {
+        
+        if (self.op == "TRUE") {
+            return true
+        }
+        if input[self.field] == nil {
+            return self.missing || (self.op == "=" && self.value == nil)
+        } else if self.op == "!=" && self.value == nil {
+            return true
+        }
+        
+        if self.op == "in" {
+            let predicate = NSPredicate(format:"ls \(self.op) rs")
+            return predicate.evaluateWithObject([
+                "ls" : self.value!,
+                "rs" : input[self.field]!])
+        }
+        if let term = self.term,
+            text = input[self.field] as? String,
+            field = fields[self.field] as? [String : AnyObject],
+            summary = fields["summary"] as? [String : AnyObject],
+            allForms = summary["term_forms"] as? [String : AnyObject],
+            termForms = allForms[term] as? [String] {
+
+                let terms = [term] + termForms
+                let options = field["term_analysis"] as? [String : AnyObject]
+                let predicate = NSPredicate(format:"ls \(self.op) rs")
+                return predicate.evaluateWithObject([
+                    "ls" : self.termCount(text, forms: terms, options: options),
+                    "rs" : self.value!])
+        }
+        let predicate = NSPredicate(format:"ls \(self.op) rs")
+        return predicate.evaluateWithObject([
+            "ls" : input[self.field]!,
+            "rs" : self.value!])
     }
 }
 
@@ -835,10 +879,9 @@ class Predicates {
     
     init(predicates : [AnyObject]) {
         self.predicates = predicates.map() {
-            assert($0["term"] != nil, "TERM NOT PASSED IN PREDICATE -- TBD")
 
             if let p = $0 as? String {
-                return Predicate(op: "", field: "", value: 1, term: "")
+                return Predicate(op: "TRUE", field: "", value: 1, term: "")
             }
             if let p = $0 as? [String : AnyObject] {
                 if let op = p["op"] as? String, field = p["field"] as? String, value = p["value"] as? Int, term = p["term"] as? String {
@@ -858,8 +901,15 @@ class Predicates {
     }
 
     func apply(input : [String : AnyObject], fields : [String : AnyObject]) -> Bool {
-        assert(false, "TBD")
-        return true
+
+        return predicates.reduce(true) {
+            $0 && $1.apply(input, fields: fields)
+//            let predicateOutcome = predicate.apply(input, fields: fields)
+//            return NSPredicate(format: "\(predicateOutcome)")
+        }
+//        let predicate = NSCompoundPredicate(type: .AndPredicateType,
+//            subpredicates: p)
+//        return predicate.evaluateWithObject()
     }
 }
 
