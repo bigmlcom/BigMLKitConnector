@@ -61,7 +61,7 @@ class BigMLKitConnectorTests: XCTestCase {
         
         let exp = self.expectationWithDescription(name)
         test(exp)
-        self.waitForExpectationsWithTimeout(60) { (error) in
+        self.waitForExpectationsWithTimeout(360) { (error) in
             println("Expect error \(error)")
         }
     }
@@ -340,6 +340,19 @@ class BigMLKitConnectorTests: XCTestCase {
             self.connector.getResource(BMLResourceType.Source, uuid: "no-uuid") { (resource, error) -> Void in
                 exp.fulfill()
                 XCTAssert(error != nil && resource == nil, "Pass")
+            }
+        }
+    }
+    
+    func testRunScoreTest() {
+        
+        self.runTest("testRunScoreTest") { (exp) in
+            self.connector.getResource(BMLResourceType.Anomaly, uuid: "55672e798a318f0717000598") { (resource, error) -> Void in
+                XCTAssert(error == nil && resource != nil, "Pass")
+                let a = Anomaly(anomaly: resource!)
+                let score = a.score(["Country" : "France", "Price" : "25", "Total Sales" : "133"])
+                println("Score: \(score)")
+                exp.fulfill()
             }
         }
     }
