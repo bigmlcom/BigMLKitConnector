@@ -350,7 +350,7 @@ class BigMLKitConnectorTests: XCTestCase {
             self.connector.getResource(BMLResourceType.Anomaly, uuid: "55672e798a318f0717000598") { (resource, error) -> Void in
                 XCTAssert(error == nil && resource != nil, "Pass")
                 let a = Anomaly(anomaly: resource!)
-                let score = a.score(["Country" : "France", "Price" : "25", "Total Sales" : "133"])
+                let score = a.score(["Country" : "France", "Price" : 25, "Total Sales" : 133])
                 println("Score: \(score)")
                 exp.fulfill()
             }

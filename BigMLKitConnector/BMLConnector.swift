@@ -844,7 +844,7 @@ class Predicate {
         if (self.op == "TRUE") {
             return true
         }
-        println("APPLYING: \(input) to field \(self.field)")
+//        println("APPLYING: \(input) to field \(self.field)")
         if input[self.field] == nil {
             return self.missing || (self.op == "=" && self.value as! NSObject == NSNull())
         } else if self.op == "!=" && self.value as! NSObject == NSNull() {
@@ -865,15 +865,13 @@ class Predicate {
 //            }
 //        }
 
-        
+        println("INPUT: \(input[self.field]!) -- FIELD: \(self.field) -- VALUE: \(self.value)")
         if self.op == "in" {
             let predicate = NSPredicate(format:"ls \(self.op) rs")
+            println("PREDICATE \(predicate)")
             return predicate.evaluateWithObject([
                 "ls" : input[self.field]!,
                 "rs" : self.value])
-//            return predicate.evaluateWithObject([
-//                "ls" : self.value,
-//                "rs" : input[self.field]!])
         }
         if let term = self.term,
             text = input[self.field] as? String,
@@ -885,16 +883,20 @@ class Predicate {
                 let terms = [term] + termForms
                 let options = field["term_analysis"] as? [String : AnyObject]
                 let predicate = NSPredicate(format:"ls \(self.op) rs")
+                println("PREDICATE \(predicate)")
                 return predicate.evaluateWithObject([
                     "ls" : self.termCount(text, forms: terms, options: options),
                     "rs" : self.value])
         }
         let predicate = NSPredicate(format:"ls \(self.op) rs")
-        println("Predicating with \(self.value)")
-        let result = predicate.evaluateWithObject([
-            "ls" : input[self.field]!,
-            "rs" : "\(self.value)"])
-        return result
+        println("PREDICATE \(predicate)")
+        if let inputValue : AnyObject = input[self.field] {
+            return predicate.evaluateWithObject([
+                "ls" : input[self.field]!,
+                "rs" : self.value])
+        }
+        assert(false, "Should not be here: no input value provided!")
+        return false
     }
 }
 
@@ -935,8 +937,8 @@ class Predicates {
         return predicates.reduce(true) {
             let rule = $1.rule(fields)
             let result = $1.apply(input, fields: fields)
-            println("Applying predicate: \(rule) - \(result)")
-            return $0 && $1.apply(input, fields: fields)
+            println("Applying predicate: \(result)")
+            return $0 && result
         }
     }
 }
@@ -979,7 +981,7 @@ class AnomalyTree {
                 return child.depth(input, path: path, depth: depth+1)
             }
         }
-        return (0, [""])
+        return (depth, path)
     }
 }
 
@@ -1117,8 +1119,10 @@ class Anomaly : FieldedResource {
             let inputData = self.filterInputData(input, byName: byName)
             var depthSum = iforest.reduce(0) {
                 if let tree = $1 {
+                    println("DEPTH: \(tree.depth(inputData))")
                     return $0 + tree.depth(inputData).0
                 }
+                assert(false, "Should not be here: non-tree found in forest!")
                 return 0
             }
             let observedMeanDepth = Double(depthSum) / Double(iforest.count)
