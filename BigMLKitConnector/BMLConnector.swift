@@ -165,7 +165,7 @@ func =~ (input: String, pattern: String) -> Bool {
     }
 }
 
-@objc public class BMLResourceTypeIdentifier : NSObject, StringLiteralConvertible, Printable {
+@objc public class BMLResourceTypeIdentifier : NSObject, NSCopying, StringLiteralConvertible, Printable {
 
     public var type : BMLResourceType
     
@@ -199,6 +199,10 @@ func =~ (input: String, pattern: String) -> Bool {
     
     public func stringValue() -> String {
         return self.type.stringValue()
+    }
+    
+    public func copyWithZone(zone: NSZone) -> AnyObject {
+        return BMLResourceTypeIdentifier(rawType: self.type)
     }
 }
 
