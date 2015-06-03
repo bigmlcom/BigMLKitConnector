@@ -867,10 +867,10 @@ class Predicate {
 //            }
 //        }
 
-        println("INPUT: \(input[self.field]!) -- FIELD: \(self.field) -- VALUE: \(self.value)")
+//        println("INPUT: \(input[self.field]!) -- FIELD: \(self.field) -- VALUE: \(self.value)")
         if self.op == "in" {
             let predicate = NSPredicate(format:"ls \(self.op) rs")
-            println("PREDICATE \(predicate)")
+//            println("PREDICATE \(predicate)")
             return predicate.evaluateWithObject([
                 "ls" : input[self.field]!,
                 "rs" : self.value])
@@ -909,7 +909,7 @@ class Predicates {
     init(predicates : [AnyObject]) {
         self.predicates = predicates.map() {
 
-            println("PREDICATE: \($0)")
+//            println("PREDICATE: \($0)")
             if let p = $0 as? String {
                 return Predicate(op: "TRUE", field: "", value: 1, term: "")
             }
@@ -939,7 +939,7 @@ class Predicates {
         return predicates.reduce(true) {
             let rule = $1.rule(fields)
             let result = $1.apply(input, fields: fields)
-            println("Applying predicate: \(result)")
+//            println("Applying predicate: \(result)")
             return $0 && result
         }
     }
@@ -989,7 +989,7 @@ class AnomalyTree {
 
 let DEPTH_FACTOR : Double = 0.5772156649
 
-class FieldedResource {
+public class FieldedResource : NSObject {
  
     internal let fields : [String : AnyObject]
     internal let objectiveId : String?
@@ -1007,6 +1007,8 @@ class FieldedResource {
             self.locale = locale
             self.missingTokens = missingTokens
             self.inverseFieldMap = [:]
+            
+            super.init()
             self.inverseFieldMap = self.invertedFieldMap()
     }
     
@@ -1048,7 +1050,7 @@ class FieldedResource {
     }
 }
 
-class Anomaly : FieldedResource {
+public class Anomaly : FieldedResource {
     
     let sampleSize : Double?
     let inputFields : [String]?
@@ -1056,7 +1058,7 @@ class Anomaly : FieldedResource {
     var expectedMeanDepth : Double? = .None
     var iforest : [AnomalyTree?]?
     
-    init(anomaly : BMLResource) {
+    public init(anomaly : BMLResource) {
     
         assert(anomaly.type == BMLResourceType.Anomaly, "Wrong resource passed in -- anomaly expected")
 //        println("RESOURCE \(anomaly.jsonDefinition)")
@@ -1114,14 +1116,14 @@ class Anomaly : FieldedResource {
         }
     }
     
-    func score(input : [String : AnyObject], byName : Bool = true) -> Double {
+    public func score(input : [String : AnyObject], byName : Bool = true) -> Double {
         
         assert(self.iforest != nil, "Could not find forest info. The anomaly was possibly not completely created")
         if let iforest = self.iforest {
             let inputData = self.filterInputData(input, byName: byName)
             var depthSum = iforest.reduce(0) {
                 if let tree = $1 {
-                    println("DEPTH: \(tree.depth(inputData))")
+//                    println("DEPTH: \(tree.depth(inputData))")
                     return $0 + tree.depth(inputData).0
                 }
                 assert(false, "Should not be here: non-tree found in forest!")
