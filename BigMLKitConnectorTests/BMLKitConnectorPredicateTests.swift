@@ -98,27 +98,49 @@ class BigMLKitConnectorPredicateTests: XCTestCase {
 
     func testNumPredicatesEval() {
         
-        let term1 = "T"
-        let term2 = "T.T"
         let ps = Predicates(predicates: [
             "TRUE",
-            ["op" : ">=", "field" : "F1", "value" : 1, "term" : term1],
-            ["op" : "<=", "field" : "F2", "value" : 1, "term" : term1]])
+            ["op" : ">=", "field" : "F1", "value" : 1.1, "term" : ""],
+            ["op" : ">=*", "field" : "F1", "value" : 1.1, "term" : ""],
+            ["op" : "<=", "field" : "F2", "value" : 1.0, "term" : ""]])
         
         let result = ps.apply(["F1" : 5, "F2" : 1], fields: ["F1" : [:], "F2" : [:]])
         XCTAssert(result, "Pass")
     }
     
-    func testNumPredicatesEvalFail() {
+    func testInclusionPredicatesEval() {
         
-        let term1 = "T"
-        let term2 = "T.T"
+        var p = Predicate(op: "in", field: "F0", value: ["a", "b"])
+        var res = p.apply(["F0" : "a"], fields: ["F0" : [:], "F2" : [:]])
+        XCTAssert(res, "Pass")
+
+        p = Predicate(op: "in", field: "F0", value: ["a", "b"])
+        res = p.apply(["F0" : "c"], fields: ["F0" : [:], "F2" : [:]])
+        XCTAssert(!res, "Pass")
+
+        p = Predicate(op: "in", field: "F0", value: ["a", "b"])
+        res = p.apply(["F0" : "a"], fields: ["F1" : [:], "F2" : [:]])
+        XCTAssert(!res, "Pass")
+        
         let ps = Predicates(predicates: [
             "TRUE",
-            ["op" : ">=", "field" : "F1", "value" : 1, "term" : term1],
-            ["op" : ">", "field" : "F2", "value" : 1, "term" : term1]])
+            ["op" : "in", "field" : "F0", "value" : "a", "term" : ""],
+            ["op" : ">=*", "field" : "F1", "value" : 1.1, "term" : ""],
+            ["op" : "<=", "field" : "F2", "value" : 1.0, "term" : ""]])
         
-        let result = ps.apply(["F1" : 5, "F2" : 1], fields: ["F1" : [:], "F2" : [:]])
+        let result = ps.apply(["F0" : ["a", "b"], "F1" : 5, "F2" : 1], fields: ["F0" : [:], "F1" : [:], "F2" : [:]])
+        XCTAssert(result, "Pass")
+    }
+    
+    func testNumPredicatesEvalFail() {
+        
+        let ps = Predicates(predicates: [
+            "TRUE",
+            ["op" : ">=", "field" : "F1", "value" : 1.2, "term" : ""],
+            ["op" : "<=*", "field" : "F1", "value" : 1.1, "term" : ""],
+            ["op" : ">", "field" : "F2", "value" : 1, "term" : ""]])
+        
+        let result = ps.apply(["F1" : 5, "F2" : 1.1], fields: ["F1" : [:], "F2" : [:]])
         XCTAssert(!result, "Pass")
     }
     

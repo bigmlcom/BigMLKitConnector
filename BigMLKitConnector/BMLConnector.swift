@@ -792,8 +792,6 @@ class Predicate {
     
     func rule(fields : [String : AnyObject], label : String = "name") -> String {
         
-//        println("FIELD: \(self.field)")
-//        println("FIELDS: \(fields)")
         if let fieldDict = fields[self.field] as? [String : AnyObject],
             name = fieldDict[label] as? String {
 
