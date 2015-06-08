@@ -41,8 +41,38 @@ extension NSBundle {
 
 //let signalHandler = CFunctionPointer<((Int32) -> Void)>(COpaquePointer(UnsafePointer<(Int32)->Void>(sigHandler)))
 
+func getMeAResource(type : BMLResourceType) -> BMLResource {
+ 
+    var result : BMLResource = BMLMinimalResource(name:"wrongResource", rawType:type, uuid:"5540b821c0eea909d0000525")
+    let sem = dispatch_semaphore_create(0)
+    let filePath = NSBundle.pathForResource("wines.csv")
+    let resource = BMLMinimalResource(name:"defaultSourceFile", rawType:BMLResourceType.File, uuid:filePath!)
+    let connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.Development)
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) {
+        
+        connector.createResource(type,
+            name: "default",
+            options: [:],
+            from: resource) { (resource, error) -> Void in
+                
+                if let resource = resource {
+                    result = resource
+                }
+                dispatch_semaphore_signal(sem)
+        }
+    }
+    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
+    return result
+}
+
 class BigMLKitConnectorTests: XCTestCase {
     
+    struct Static {
+        static let defaultSource = getMeAResource(BMLResourceType.Source)
+        static let defaultAnomaly = getMeAResource(BMLResourceType.Anomaly)
+    }
+
     var connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.Development)
     
     override func setUp() {
@@ -114,10 +144,10 @@ class BigMLKitConnectorTests: XCTestCase {
     func testCreateDataset() {
         
         self.runTest("testCreateDataset") { (exp) in
-            let resource = BMLMinimalResource(name:"testCreateDataset", rawType:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
             self.connector.createResource(BMLResourceType.Dataset,
                 name: "testCreateDataset",
-                options: [:], from: resource) { (resource, error) -> Void in
+                options: [:],
+                from: BigMLKitConnectorTests.Static.defaultSource) { (resource, error) -> Void in
                     exp.fulfill()
                     XCTAssert(resource != nil && error == nil, "Pass")
             }
@@ -127,12 +157,11 @@ class BigMLKitConnectorTests: XCTestCase {
     func testCreateDatasetWithOptions() {
         
         self.runTest("testCreateDatasetWithOptions") { (exp) in
-            let resource = BMLMinimalResource(name:"testCreateDatasetWithOptions", rawType:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
             self.connector.createResource(BMLResourceType.Dataset,
                 name: "testCreateDatasetWithOptions",
                 options: ["size" : 400,
                     "fields" : ["000001" : ["name" : "field_1"]]],
-                from: resource) { (resource, error) -> Void in
+                from: BigMLKitConnectorTests.Static.defaultSource) { (resource, error) -> Void in
                     exp.fulfill()
                     if let error = error {
                         println("Error: \(error)")
@@ -145,12 +174,11 @@ class BigMLKitConnectorTests: XCTestCase {
     func testCreateDatasetWithOptionsFail() {
         
         self.runTest("testCreateDatasetWithOptionsFail") { (exp) in
-            let resource = BMLMinimalResource(name:"testCreateDatasetWithOptionsFail", rawType:BMLResourceType.Source, uuid:"5540b821c0eea909d0000525")
             self.connector.createResource(BMLResourceType.Dataset,
                 name: "testCreateDatasetWithOptionsFail",
                 options: ["size" : "400",
                     "fields" : ["000001" : ["name" : "field_1"]]],
-                from: resource) { (resource, error) -> Void in
+                from: BigMLKitConnectorTests.Static.defaultSource) { (resource, error) -> Void in
                     exp.fulfill()
                     if let error = error {
                         println("Error: \(error)")
@@ -174,8 +202,10 @@ class BigMLKitConnectorTests: XCTestCase {
     func testCreateAnomaly() {
         
         self.runTest("testCreateAnomaly") { (exp) in
-            let resource = BMLMinimalResource(name:"testCreateAnomaly", rawType:BMLResourceType.Dataset, uuid:"554a3b4977920c09e3000431")
-            self.connector.createResource(BMLResourceType.Anomaly, name: "testCreateAnomaly", options: ["" : ""], from: resource) { (resource, error) -> Void in
+            self.connector.createResource(BMLResourceType.Anomaly,
+                name: "testCreateAnomaly",
+                options: [:],
+                from: BigMLKitConnectorTests.Static.defaultSource) { (resource, error) -> Void in
                 exp.fulfill()
                 XCTAssert(resource != nil && error == nil, "Pass")
             }
@@ -261,7 +291,8 @@ class BigMLKitConnectorTests: XCTestCase {
     func testGetDataset() {
         
         self.runTest("testGetDataset") { (exp) in
-            self.connector.getResource(BMLResourceType.Source, uuid: "5540b821c0eea909d0000525") { (resource, error) -> Void in
+            let source = BigMLKitConnectorTests.Static.defaultSource
+            self.connector.getResource(source.type, uuid: source.uuid) { (resource, error) -> Void in
                 exp.fulfill()
                 XCTAssert(error == nil && resource != nil, "Pass")
             }
@@ -347,8 +378,11 @@ class BigMLKitConnectorTests: XCTestCase {
     func testRunScoreTest() {
         
         self.runTest("testRunScoreTest") { (exp) in
-            self.connector.getResource(BMLResourceType.Anomaly, uuid: "55672e798a318f0717000598") { (resource, error) -> Void in
+            let anomaly = BigMLKitConnectorTests.Static.defaultAnomaly
+            self.connector.getResource(anomaly.type, uuid: anomaly.uuid) { (resource, error) -> Void in
                 XCTAssert(error == nil && resource != nil, "Pass")
+                let typ = resource!.type.stringValue()
+                println("ANOM: \(typ)")
                 let a = Anomaly(anomaly: resource!)
                 let score = a.score(["Country" : "France", "Price" : 20, "Total Sales" : 133])
                 println("Score: \(score)")
