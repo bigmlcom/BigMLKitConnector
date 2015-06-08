@@ -525,7 +525,7 @@ public class BMLConnector : NSObject {
                     localError = NSError(code:-10001, message:"Bad response format")
                 }
             }
-            completion(result: result, error: error)
+            completion(result: result, error: localError)
         }
     }
     
@@ -560,9 +560,7 @@ public class BMLConnector : NSObject {
                             localError = NSError(code: -10001, message: "Bad response format")
                         }
                     }
-                    if (localError != nil) {
-                        completion(resource : nil, error : localError)
-                    }
+                    completion(resource : nil, error : localError)
                 }
                 
                 if (from.type == BMLResourceType.File) {
@@ -612,9 +610,9 @@ public class BMLConnector : NSObject {
                         }
                     } else {
                         localError = NSError(code:-10001, message:"Bad response format")
-                        println("RESPONSE: \(jsonObject)")
+//                        println("RESPONSE: \(jsonObject)")
                     }
-                    completion(resources: resources, error : nil)
+                    completion(resources: resources, error: localError)
                 }
             }
     }
@@ -885,7 +883,7 @@ class Predicate {
                 let terms = [term] + termForms
                 let options = field["term_analysis"] as? [String : AnyObject]
                 let predicate = NSPredicate(format:"ls \(self.op) rs")
-                println("PREDICATE \(predicate)")
+//                println("PREDICATE \(predicate)")
                 return predicate.evaluateWithObject([
                     "ls" : self.termCount(text, forms: terms, options: options),
                     "rs" : self.value])
