@@ -39,40 +39,12 @@ extension NSBundle {
     }
 }
 
-//let signalHandler = CFunctionPointer<((Int32) -> Void)>(COpaquePointer(UnsafePointer<(Int32)->Void>(sigHandler)))
-
-func getMeAResource(type : BMLResourceType) -> BMLResource {
- 
-    var result : BMLResource = BMLMinimalResource(name:"wrongResource", rawType:type, uuid:"5540b821c0eea909d0000525")
-    let sem = dispatch_semaphore_create(0)
-    let filePath = NSBundle.pathForResource("wines.csv")
-    let resource = BMLMinimalResource(name:"defaultSourceFile", rawType:BMLResourceType.File, uuid:filePath!)
-    let connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.Development)
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) {
-        
-        connector.createResource(type,
-            name: "default",
-            options: [:],
-            from: resource) { (resource, error) -> Void in
-                
-                if let resource = resource {
-                    result = resource
-                }
-                dispatch_semaphore_signal(sem)
-        }
-    }
-    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
-    return result
-}
-
 class BigMLKitConnectorTests: XCTestCase {
     
-    struct Static {
-        static let defaultSource = getMeAResource(BMLResourceType.Source)
-        static let defaultAnomaly = getMeAResource(BMLResourceType.Anomaly)
-    }
-
+    var aSource : BMLResource?
+    var aDataset : BMLResource?
+    var anAnomaly : BMLResource?
+    
     var connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.Development)
     
     override func setUp() {
@@ -80,6 +52,17 @@ class BigMLKitConnectorTests: XCTestCase {
 
         installSigHandler();
         self.connector = BMLConnector(username:BigMLKitTestCredentials.username(), apiKey:BigMLKitTestCredentials.apiKey(), mode:BMLMode.Development)
+        
+        if (self.aSource == nil) {
+            self.test0Create1Datasource()
+        }
+        if (self.aDataset == nil) {
+            self.test0Create2Dataset()
+        }
+        if (self.anAnomaly == nil) {
+            self.test0Create3Anomaly()
+        }
+        
 }
     
     override func tearDown() {
@@ -96,15 +79,44 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
 
-    func testCreateDatasource() {
+    func test0Create1Datasource() {
         
         self.runTest("testCreateDatasource") { (exp) in
             
             let filePath = NSBundle.pathForResource("iris.csv")
             let resource = BMLMinimalResource(name:"testCreateDatasource", rawType:BMLResourceType.File, uuid:filePath!)
-            self.connector.createResource(BMLResourceType.Source, name: "testCreateDatasource", options: ["" : ""], from: resource) { (resource, error) -> Void in
-                exp.fulfill()
+            self.connector.createResource(BMLResourceType.Source, name: "testCreateDatasource", options: [:], from: resource) { (resource, error) -> Void in
                 XCTAssert(resource != nil && error == nil, "Pass")
+                self.aSource = resource
+                exp.fulfill()
+            }
+        }
+    }
+    
+    func test0Create2Dataset() {
+        
+        self.runTest("testCreateDataset") { (exp) in
+            self.connector.createResource(BMLResourceType.Dataset,
+                name: "testCreateDataset",
+                options: [:],
+                from: self.aSource!) { (resource, error) -> Void in
+                    XCTAssert(resource != nil && error == nil, "Pass")
+                    self.aDataset = resource
+                    exp.fulfill()
+            }
+        }
+    }
+    
+    func test0Create3Anomaly() {
+        
+        self.runTest("testCreateAnomaly") { (exp) in
+            self.connector.createResource(BMLResourceType.Anomaly,
+                name: "testCreateAnomaly",
+                options: [:],
+                from: self.aDataset!) { (resource, error) -> Void in
+                    XCTAssert(resource != nil && error == nil, "Pass")
+                    self.anAnomaly = resource
+                    exp.fulfill()
             }
         }
     }
@@ -141,27 +153,14 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
 
-    func testCreateDataset() {
-        
-        self.runTest("testCreateDataset") { (exp) in
-            self.connector.createResource(BMLResourceType.Dataset,
-                name: "testCreateDataset",
-                options: [:],
-                from: BigMLKitConnectorTests.Static.defaultSource) { (resource, error) -> Void in
-                    exp.fulfill()
-                    XCTAssert(resource != nil && error == nil, "Pass")
-            }
-        }
-    }
-    
-    func testCreateDatasetWithOptions() {
+    func test1Create1DatasetWithOptions() {
         
         self.runTest("testCreateDatasetWithOptions") { (exp) in
             self.connector.createResource(BMLResourceType.Dataset,
                 name: "testCreateDatasetWithOptions",
                 options: ["size" : 400,
                     "fields" : ["000001" : ["name" : "field_1"]]],
-                from: BigMLKitConnectorTests.Static.defaultSource) { (resource, error) -> Void in
+                from: self.aSource!) { (resource, error) -> Void in
                     exp.fulfill()
                     if let error = error {
                         println("Error: \(error)")
@@ -171,14 +170,14 @@ class BigMLKitConnectorTests: XCTestCase {
         }
     }
     
-    func testCreateDatasetWithOptionsFail() {
+    func test1Create1DatasetWithOptionsFail() {
         
         self.runTest("testCreateDatasetWithOptionsFail") { (exp) in
             self.connector.createResource(BMLResourceType.Dataset,
                 name: "testCreateDatasetWithOptionsFail",
                 options: ["size" : "400",
                     "fields" : ["000001" : ["name" : "field_1"]]],
-                from: BigMLKitConnectorTests.Static.defaultSource) { (resource, error) -> Void in
+                from: self.aSource!) { (resource, error) -> Void in
                     exp.fulfill()
                     if let error = error {
                         println("Error: \(error)")
@@ -193,19 +192,6 @@ class BigMLKitConnectorTests: XCTestCase {
         self.runTest("testCreateDatasetFromCSVFail") { (exp) in
             let resource = BMLMinimalResource(name:"testCreateDatasetFromCSVFail", rawType:BMLResourceType.File, uuid:NSBundle.pathForResource("iris.csv")!)
             self.connector.createResource(BMLResourceType.Dataset, name: "testCreateDatasetFromCSVFail", options: ["" : ""], from: resource) { (resource, error) -> Void in
-                exp.fulfill()
-                XCTAssert(resource != nil && error == nil, "Pass")
-            }
-        }
-    }
-    
-    func testCreateAnomaly() {
-        
-        self.runTest("testCreateAnomaly") { (exp) in
-            self.connector.createResource(BMLResourceType.Anomaly,
-                name: "testCreateAnomaly",
-                options: [:],
-                from: BigMLKitConnectorTests.Static.defaultSource) { (resource, error) -> Void in
                 exp.fulfill()
                 XCTAssert(resource != nil && error == nil, "Pass")
             }
@@ -291,7 +277,7 @@ class BigMLKitConnectorTests: XCTestCase {
     func testGetDataset() {
         
         self.runTest("testGetDataset") { (exp) in
-            let source = BigMLKitConnectorTests.Static.defaultSource
+            let source = self.aDataset!
             self.connector.getResource(source.type, uuid: source.uuid) { (resource, error) -> Void in
                 exp.fulfill()
                 XCTAssert(error == nil && resource != nil, "Pass")
@@ -378,11 +364,9 @@ class BigMLKitConnectorTests: XCTestCase {
     func testRunScoreTest() {
         
         self.runTest("testRunScoreTest") { (exp) in
-            let anomaly = BigMLKitConnectorTests.Static.defaultAnomaly
-            self.connector.getResource(anomaly.type, uuid: anomaly.uuid) { (resource, error) -> Void in
+            self.connector.getResource(self.anAnomaly!.type, uuid: self.anAnomaly!.uuid) { (resource, error) -> Void in
                 XCTAssert(error == nil && resource != nil, "Pass")
                 let typ = resource!.type.stringValue()
-                println("ANOM: \(typ)")
                 let a = Anomaly(anomaly: resource!)
                 let score = a.score(["Country" : "France", "Price" : 20, "Total Sales" : 133])
                 println("Score: \(score)")
