@@ -560,7 +560,9 @@ public class BMLConnector : NSObject {
                             localError = NSError(code: -10001, message: "Bad response format")
                         }
                     }
-                    completion(resource : nil, error : localError)
+                    if (localError != nil) {
+                        completion(resource : nil, error : localError)
+                    }
                 }
                 
                 if (from.type == BMLResourceType.File) {
@@ -686,7 +688,6 @@ public class BMLConnector : NSObject {
                             localError = NSError(code:code, message:message)
                         }
                     }
-                    
                 }
                 if (resource == nil && localError == nil) {
                     localError = NSError(code:-10001, message:"Bad response format")
