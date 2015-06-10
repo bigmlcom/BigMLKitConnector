@@ -20,9 +20,22 @@ func delay(delay:Double, closure:()->()) {
 
 extension NSError {
     
-    convenience init(code: Int, message: String) {
-        self.init(domain: "BigMLKitConnector", code: code, userInfo: ["message" : message])
+    struct BMLExtendedError {
+        static let DescriptionKey = "BMLExtendedErrorDescriptionKey"
     }
+    
+    convenience init(info : String, code : Int) {
+        self.init(info: info, code: code, message: [:])
+    }
+    
+    convenience init(info : String, code : Int, message : [String : AnyObject]) {
+        let userInfo = [
+            NSLocalizedDescriptionKey : info,
+            NSError.BMLExtendedError.DescriptionKey : message
+        ] as [NSObject : AnyObject]
+        self.init(domain: "com.bigml.bigmlkitconnector", code: code, userInfo: userInfo)
+    }
+    
 }
 
 extension NSMutableData {
@@ -379,7 +392,7 @@ public class BMLConnector : NSObject {
             if (error == nil) {
                 if let response = response as? NSHTTPURLResponse {
                 } else {
-                    localError = NSError(code:-10001, message:"Bad response format")
+                    localError = NSError(info:"Bad response format", code:-10001)
                 }
             }
             var result = []
@@ -402,7 +415,7 @@ public class BMLConnector : NSObject {
                     status = jsonDict["status"] as? [String : AnyObject],
                     code = status["code"] as? Int {
                         if (code != 204) {
-                            localError = NSError(code: code, message: status.description)
+                            localError = NSError(info: status.description, code: code)
                         }
                 }
             }
@@ -427,7 +440,7 @@ public class BMLConnector : NSObject {
                         status = jsonDict["status"] as? [String : AnyObject],
                         code = jsonDict["code"] as? Int {
                             if (code != 202) {
-                                localError = NSError(code: code, message: status.description)
+                                localError = NSError(info: status.description, code: code)
                             }
                     }
                 }
@@ -470,10 +483,10 @@ public class BMLConnector : NSObject {
                     if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                         result = jsonDict
                         if (code != 201) {
-                            localError = NSError(code: code, message: jsonDict["status"]!.description)
+                            localError = NSError(info: jsonDict["status"]!.description, code: code)
                         }
                     } else {
-                        localError = NSError(code:-10001, message:"Bad response format")
+                        localError = NSError(info: "Bad response format", code:-10001)
                     }
                 }
                 completion(result: result, error: localError)
@@ -519,10 +532,10 @@ public class BMLConnector : NSObject {
                 if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                     result = jsonDict
                     if (code != 201) {
-                        localError = NSError(code: code, message: jsonDict["status"]!.description)
+                        localError = NSError(info: jsonDict["status"]!.description, code: code)
                     }
                 } else {
-                    localError = NSError(code:-10001, message:"Bad response format")
+                    localError = NSError(info:"Bad response format", code:-10001)
                 }
             }
             completion(result: result, error: localError)
@@ -557,7 +570,7 @@ public class BMLConnector : NSObject {
                             resource = BMLMinimalResource(name: name, fullUuid: fullUuid, definition: [:])
                             self.trackResourceStatus(resource!, completion: completion)
                         } else {
-                            localError = NSError(code: -10001, message: "Bad response format")
+                            localError = NSError(info: "Bad response format", code: -10001)
                         }
                     }
                     if (localError != nil) {
@@ -604,14 +617,14 @@ public class BMLConnector : NSObject {
                                     fullUuid:$0["resource"] as! String,
                                     definition:resourceDict)
                             } else {
-                                localError = NSError(code:-10001, message:"Bad response format")
+                                localError = NSError(info:"Bad response format", code:-10001)
                                 return BMLMinimalResource(name: "Wrong Resource",
                                     fullUuid: "Wrong/Resource",
                                     definition: [:])
                             }
                         }
                     } else {
-                        localError = NSError(code:-10001, message:"Bad response format")
+                        localError = NSError(info:"Bad response format", code:-10001)
 //                        println("RESPONSE: \(jsonObject)")
                     }
                     completion(resources: resources, error: localError)
@@ -659,7 +672,7 @@ public class BMLConnector : NSObject {
                         code = jsonDict["code"] as? Int {
                         resourceDict = jsonDict
                     } else {
-                        localError = NSError(code:-10001, message:"Bad response format")
+                        localError = NSError(info:"Bad response format", code:-10001)
                     }
                     completion(resourceDict : resourceDict, error : localError)
                 }
@@ -685,12 +698,12 @@ public class BMLConnector : NSObject {
                         }
                     } else {
                         if let message = resourceDict["status"]?["message"] as? String {
-                            localError = NSError(code:code, message:message)
+                            localError = NSError(info:message, code:code)
                         }
                     }
                 }
                 if (resource == nil && localError == nil) {
-                    localError = NSError(code:-10001, message:"Bad response format")
+                    localError = NSError(info: "Bad response format", code:-10001)
 //                    println("RESPONSE: \(resourceDict)")
                 }
                 completion(resource : resource, error : localError)
@@ -712,7 +725,7 @@ public class BMLConnector : NSObject {
                     println("Monitoring status \(statusCode.rawValue)")
                     if (statusCode < BMLResourceStatus.Waiting) {
                         if let code = statusDict["error"] as? Int, message = statusDict["message"] as? String {
-                            localError = NSError(code: code, message: message)
+                            localError = NSError(info: message, code: code)
                         }
                         resource.status = BMLResourceStatus.Failed
                     } else if (statusCode < BMLResourceStatus.Ended) {
@@ -731,7 +744,7 @@ public class BMLConnector : NSObject {
                         completion(resource: resource, error: error)
                     }
                 } else {
-                    localError = NSError(code: -10001, message: "Bad response format: no status found")
+                    localError = NSError(info: "Bad response format: no status found", code: -10001)
                 }
             }
             if (localError != nil) {
