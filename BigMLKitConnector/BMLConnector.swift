@@ -712,6 +712,7 @@ public class BMLConnector : NSObject {
                     println("Monitoring status \(statusCode.rawValue)")
                     if (statusCode < BMLResourceStatus.Waiting) {
                         resource.status = BMLResourceStatus.Failed
+                        completion(resource: nil, error: error)
                     } else if (statusCode < BMLResourceStatus.Ended) {
                         delay(1.0) {
                             self.trackResourceStatus(resource, completion: completion)
