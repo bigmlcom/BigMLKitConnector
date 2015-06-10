@@ -733,11 +733,11 @@ public class BMLConnector : NSObject {
                 } else {
                     localError = NSError(code: -10001, message: "Bad response format: no status found")
                 }
-                if (localError != nil) {
-                    println("Tracking error \(localError)")
-                    resource.status = BMLResourceStatus.Failed
-                    completion(resource: nil, error: localError)
-                }
+            }
+            if (localError != nil) {
+                println("Tracking error \(localError)")
+                resource.status = BMLResourceStatus.Failed
+                completion(resource: nil, error: localError)
             }
         }
     }
