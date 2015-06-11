@@ -921,7 +921,7 @@ class Predicate {
                     "rs" : self.value])
         }
         let predicate = NSPredicate(format:"ls \(self.op) rs")
-        println("PREDICATE \(predicate)")
+//        println("PREDICATE \(predicate)")
         if let inputValue : AnyObject = input[self.field] {
             return predicate.evaluateWithObject([
                 "ls" : input[self.field]!,
