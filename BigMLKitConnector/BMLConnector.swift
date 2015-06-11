@@ -24,6 +24,23 @@ extension NSError {
         static let DescriptionKey = "BMLExtendedErrorDescriptionKey"
     }
     
+    convenience init(status : AnyObject?, code : Int) {
+        
+        var info = "Could not complete operation"
+        var extraInfo : [String : AnyObject] = [:]
+        if let statusDict = status as? [String : AnyObject] {
+            if let message = statusDict["message"] as? String {
+                info = message
+            }
+            if let extra = statusDict["extra"] as? [String : AnyObject] {
+                extraInfo = extra
+            }
+        } else {
+            info = "Bad response format"
+        }
+        self.init(info: info, code: code, message: extraInfo)
+    }
+    
     convenience init(info : String, code : Int) {
         self.init(info: info, code: code, message: [:])
     }
@@ -413,7 +430,7 @@ public class BMLConnector : NSObject {
                 let jsonObject: AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:nil)
                 if let jsonDict = jsonObject as? [String : AnyObject],
                     status = jsonDict["status"] as? [String : AnyObject],
-                    code = status["code"] as? Int {
+                    code = jsonDict["code"] as? Int {
                         if (code != 204) {
                             localError = NSError(info: status.description, code: code)
                         }
@@ -440,7 +457,7 @@ public class BMLConnector : NSObject {
                         status = jsonDict["status"] as? [String : AnyObject],
                         code = jsonDict["code"] as? Int {
                             if (code != 202) {
-                                localError = NSError(info: status.description, code: code)
+                                localError = NSError(status:status, code: code)
                             }
                     }
                 }
@@ -483,7 +500,7 @@ public class BMLConnector : NSObject {
                     if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                         result = jsonDict
                         if (code != 201) {
-                            localError = NSError(info: jsonDict["status"]!.description, code: code)
+                            localError = NSError(status:jsonDict["status"], code: code)
                         }
                     } else {
                         localError = NSError(info: "Bad response format", code:-10001)
@@ -532,7 +549,7 @@ public class BMLConnector : NSObject {
                 if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                     result = jsonDict
                     if (code != 201) {
-                        localError = NSError(info: jsonDict["status"]!.description, code: code)
+                        localError = NSError(status: jsonDict["status"], code: code)
                     }
                 } else {
                     localError = NSError(info:"Bad response format", code:-10001)
@@ -697,9 +714,7 @@ public class BMLConnector : NSObject {
                                 definition: resourceDict)
                         }
                     } else {
-                        if let message = resourceDict["status"]?["message"] as? String {
-                            localError = NSError(info:message, code:code)
-                        }
+                        localError = NSError(status: resourceDict["status"], code: code)
                     }
                 }
                 if (resource == nil && localError == nil) {
@@ -724,8 +739,8 @@ public class BMLConnector : NSObject {
                     let statusCode = BMLResourceStatus(integerLiteral: statusCodeInt)
                     println("Monitoring status \(statusCode.rawValue)")
                     if (statusCode < BMLResourceStatus.Waiting) {
-                        if let code = statusDict["error"] as? Int, message = statusDict["message"] as? String {
-                            localError = NSError(info: message, code: code)
+                        if let code = statusDict["error"] as? Int {
+                            localError = NSError(status: statusDict, code: code)
                         }
                         resource.status = BMLResourceStatus.Failed
                     } else if (statusCode < BMLResourceStatus.Ended) {
