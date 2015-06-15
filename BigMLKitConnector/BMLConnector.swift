@@ -953,6 +953,7 @@ class Predicates {
                 }
             }
             assert(false, "COULD NOT CREATE PREDICATE")
+            return Predicate(op: "", field: "", value: "", term: "")
         }
     }
     
@@ -978,13 +979,15 @@ class Predicates {
 class AnomalyTree {
     
     internal let fields : [String : AnyObject]
+    let anomaly : Anomaly
     var predicates : Predicates
     var id : AnyObject?
     var children : [AnomalyTree] = []
 
-    init(tree : [String : AnyObject], fields : [String : AnyObject]) {
+    init(tree : [String : AnyObject], anomaly : Anomaly) {
         
-        self.fields = fields
+        self.anomaly = anomaly
+        self.fields = anomaly.fields
         self.predicates = Predicates(predicates: ["True"])
         if let predicates = tree["predicates"] as? [[String : AnyObject]] {
             self.predicates = Predicates(predicates: predicates)
@@ -992,7 +995,7 @@ class AnomalyTree {
         }
         if let children = tree["children"] as? [[String : AnyObject]] {
             self.children = children.map {
-                AnomalyTree(tree: $0, fields: self.fields)
+                AnomalyTree(tree: $0, anomaly: anomaly)
             }
         }
     }
@@ -1012,12 +1015,17 @@ class AnomalyTree {
                 path.append(child.predicates.rule(self.fields))
                 return child.depth(input, path: path, depth: depth+1)
             }
+            if self.anomaly.stopped {
+                println("SCORE WANTS TO END \(self.anomaly.anomalyCount)")
+                return (0, [])
+            }
         }
         return (depth, path)
     }
 }
 
 let DEPTH_FACTOR : Double = 0.5772156649
+var anomalyCounter = 0
 
 public class FieldedResource : NSObject {
  
@@ -1066,7 +1074,6 @@ public class FieldedResource : NSObject {
     func filterInputData(input : [String : AnyObject], byName : Bool = true) -> [String : AnyObject] {
 
         var output : [String : AnyObject] = [:]
-        println("OBJID: \(self.objectiveId)")
         for (key, value) in input {
             if let value : AnyObject = self.normalizedValue(value) {
                 if self.objectiveId == .None || key != self.objectiveId {
@@ -1087,6 +1094,8 @@ public class Anomaly : FieldedResource {
     var meanDepth : Double?
     var expectedMeanDepth : Double? = .None
     var iforest : [AnomalyTree?]?
+    internal var stopped : Bool = false
+    var anomalyCount : Int = 0
     
     public init(anomaly : BMLResource) {
     
@@ -1126,7 +1135,7 @@ public class Anomaly : FieldedResource {
                                 self.iforest = iforest.map {
                                     if let tree = $0 as? [String : AnyObject],
                                         root = tree["root"] as? [String : AnyObject] {
-                                        return AnomalyTree(tree: root, fields: self.fields)
+                                        return AnomalyTree(tree: root, anomaly: self)
                                     } else {
                                         return .None
                                     }
@@ -1147,13 +1156,14 @@ public class Anomaly : FieldedResource {
     }
     
     public func score(input : [String : AnyObject], byName : Bool = true) -> Double {
-        
+
+        self.anomalyCount = ++anomalyCounter
+        self.stopped = false
         assert(self.iforest != nil, "Could not find forest info. The anomaly was possibly not completely created")
         if let iforest = self.iforest {
             let inputData = self.filterInputData(input, byName: byName)
             var depthSum = iforest.reduce(0) {
                 if let tree = $1 {
-//                    println("DEPTH: \(tree.depth(inputData))")
                     return $0 + tree.depth(inputData).0
                 }
                 assert(false, "Should not be here: non-tree found in forest!")
@@ -1165,4 +1175,15 @@ public class Anomaly : FieldedResource {
         return 0
     }
     
+    public func stop() {
+        self.stopped = true
+    }
+
+    public func unstop() {
+        self.stopped = false
+    }
+
+    public func isStopped() -> Bool {
+        return self.stopped
+    }
 }
