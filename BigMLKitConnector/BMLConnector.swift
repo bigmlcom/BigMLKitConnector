@@ -1016,7 +1016,6 @@ class AnomalyTree {
                 return child.depth(input, path: path, depth: depth+1)
             }
             if self.anomaly.stopped {
-                println("SCORE WANTS TO END \(self.anomaly.anomalyCount)")
                 return (0, [])
             }
         }
@@ -1164,7 +1163,7 @@ public class Anomaly : FieldedResource {
             let inputData = self.filterInputData(input, byName: byName)
             var depthSum = iforest.reduce(0) {
                 if let tree = $1 {
-                    return $0 + tree.depth(inputData).0
+                    return $0 + (self.stopped ? 0 : tree.depth(inputData).0)
                 }
                 assert(false, "Should not be here: non-tree found in forest!")
                 return 0
