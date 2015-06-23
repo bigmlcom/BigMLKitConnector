@@ -25,6 +25,8 @@ import Foundation
     case Ensemble
     case Prediction
     case Project
+    case WhizzmlScript
+    case WhizzmlExecution
     case NotAResource
     
     static let all = [File, Source, Dataset, Model, Cluster, Anomaly, Prediction, Project]
@@ -47,6 +49,10 @@ import Foundation
             self = Anomaly
         case "ensemble":
             self = Ensemble
+        case "script":
+            self = WhizzmlScript
+        case "execution":
+            self = WhizzmlExecution
         case "project":
             self = Project
         default:
@@ -84,6 +90,10 @@ import Foundation
             return "anomaly"
         case Ensemble:
             return "anomaly"
+        case WhizzmlScript:
+            return "script"
+        case WhizzmlExecution:
+            return "execution"
         case Project:
             return "project"
         default:
@@ -91,6 +101,14 @@ import Foundation
         }
     }
 }
+
+/*
+ * This class works as a high-level bridge to BMLResourceType to overcome C-enum limitations.
+ * Indeed, BMLResourceType is bridged to Objective-C through a C-enum, which is a very poor
+ * abstraction and makes it trivial.
+ * You should always use BMLResourceType in Swift code and only resort to BMLResourceTypeIdentifier
+ * in Objective-C.
+ */
 
 @objc public class BMLResourceTypeIdentifier : NSObject, NSCopying, StringLiteralConvertible, Printable {
     
