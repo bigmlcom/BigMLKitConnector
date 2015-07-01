@@ -46,15 +46,14 @@ class Predicate {
         
         if let term = self.term,
             fieldDict = fields[self.field] as? [String : AnyObject],
-            options = fieldDict["term_analysis"] as? [String : AnyObject] {
+            options = fieldDict["term_analysis"] as? [String : AnyObject],
+            tokenMode = options["token_mode"] as? String {
                 
-                if let tokenMode = options["token_mode"] as? String {
-                    if tokenMode == Predicate.TM_FULL_TERMS {
-                        return true
-                    }
-                    if tokenMode == Predicate.TM_ALL {
-                        return term =~ Predicate.FULL_TERM_PATTERN
-                    }
+                if tokenMode == Predicate.TM_FULL_TERMS {
+                    return true
+                }
+                if tokenMode == Predicate.TM_ALL {
+                    return term =~ Predicate.FULL_TERM_PATTERN
                 }
         }
         return false
@@ -103,8 +102,46 @@ class Predicate {
     }
     
     func termCount(text : String, forms : [String], options : [String : AnyObject]?) -> Int {
-        assert(false, "TBD")
-        return 0
+
+        var tokenMode = Predicate.TM_TOKENS
+        if let options = options,
+            letTokenMode = options["token_mode"] as? String {
+                tokenMode = letTokenMode
+        }
+        var caseSensitive = true
+        if let options = options,
+            letCaseSensitive = options["case_sensitive"] as? Bool {
+                caseSensitive = letCaseSensitive
+        }
+        let firstTerm = forms[0]
+        if (tokenMode == Predicate.TM_FULL_TERMS) {
+            return self.fullTermCount(text, fullTerm: firstTerm, caseSensitive: caseSensitive)
+        }
+        if (tokenMode == Predicate.TM_ALL && count(forms) == 1) {
+            if (firstTerm =~ Predicate.FULL_TERM_PATTERN) {
+                return self.fullTermCount(text, fullTerm: firstTerm, caseSensitive: caseSensitive)
+            }
+        }
+        
+        return self.tokenTermCount(text, forms: forms, caseSensitive: caseSensitive)
+    }
+    
+    func fullTermCount(text : String, fullTerm : String, caseSensitive : Bool) -> Int {
+        return (caseSensitive ? ((text == fullTerm) ? 1 : 0) : ((text =~ "/^\(fullTerm)$/i") ? 1 : 0));
+    }
+
+    func tokenTermCount(text : String, forms : [String], caseSensitive : Bool) -> Int {
+
+        let fre = "(\\b|_)".join(forms)
+        let re = "(\\b|_)\(fre)(\\b|_)"
+        return text =~~ re
+    }
+
+    func eval(predicate : String, args : [String : AnyObject]) -> Bool {
+        
+        let p = NSPredicate(format:predicate)
+        //            println("PREDICATE \(p)")
+        return p.evaluateWithObject(args)
     }
     
     func apply(input : [String : AnyObject], fields : [String : AnyObject]) -> Bool {
@@ -119,49 +156,32 @@ class Predicate {
             return true
         }
         
-        //        if input[self.field] == nil {
-        //            if  !self.missing {
-        //                if let value = self.value as? NSNull {
-        //                    return self.op == "="
-        //                }
-        //            } else {
-        //                return true
-        //            }
-        //        } else {
-        //            if let value = self.value as? NSNull {
-        //                return self.op == "!="
-        //            }
-        //        }
-        
         //        println("INPUT: \(input[self.field]!) -- FIELD: \(self.field) -- VALUE: \(self.value)")
         if self.op == "in" {
-            let predicate = NSPredicate(format:"ls \(self.op) rs")
-            //            println("PREDICATE \(predicate)")
-            return predicate.evaluateWithObject([
-                "ls" : input[self.field]!,
-                "rs" : self.value])
+            return self.eval("ls \(self.op) rs",
+                args: [ "ls" : input[self.field]!, "rs" : self.value])
         }
         if let term = self.term,
             text = input[self.field] as? String,
-            field = fields[self.field] as? [String : AnyObject],
-            summary = fields["summary"] as? [String : AnyObject],
-            allForms = summary["term_forms"] as? [String : AnyObject],
-            termForms = allForms[term] as? [String] {
-                
+            field = fields[self.field] as? [String : AnyObject] {
+
+                var termForms : [String] = []
+                if let summary = fields["summary"] as? [String : AnyObject],
+                    allForms = summary["term_forms"] as? [String : AnyObject],
+                    letTermForms = allForms[term] as? [String] {
+                 
+                        termForms = letTermForms
+                }
                 let terms = [term] + termForms
                 let options = field["term_analysis"] as? [String : AnyObject]
-                let predicate = NSPredicate(format:"ls \(self.op) rs")
-                //                println("PREDICATE \(predicate)")
-                return predicate.evaluateWithObject([
-                    "ls" : self.termCount(text, forms: terms, options: options),
-                    "rs" : self.value])
+                
+                return self.eval("ls \(self.op) rs",
+                    args: ["ls" : self.termCount(text, forms: terms, options: options),
+                           "rs" : self.value])
         }
-        let predicate = NSPredicate(format:"ls \(self.op) rs")
-        //        println("PREDICATE \(predicate)")
         if let inputValue : AnyObject = input[self.field] {
-            return predicate.evaluateWithObject([
-                "ls" : input[self.field]!,
-                "rs" : self.value])
+            return self.eval("ls \(self.op) rs",
+                args: ["ls" : input[self.field]!, "rs" : self.value])
         }
         assert(false, "Should not be here: no input value provided!")
         return false
@@ -184,18 +204,18 @@ class Predicates {
                     if let term = p["term"] as? String {
                         return Predicate(op: op, field: field, value: value, term: term)
                     } else {
-                        return Predicate(op: op, field: field, value: value, term: "")
+                        return Predicate(op: op, field: field, value: value)
                     }
                 }
             }
             assert(false, "COULD NOT CREATE PREDICATE")
-            return Predicate(op: "", field: "", value: "", term: "")
+            return Predicate(op: "", field: "", value: "")
         }
     }
     
     func rule(fields : [String : AnyObject], label : String = "name") -> String {
         
-        let strings = self.predicates.map() {
+        let strings = self.predicates.filter({ $0.op != "TRUE" }).map() {
             return $0.rule(fields, label: label)
         }
         return " and ".join(strings)
@@ -204,7 +224,6 @@ class Predicates {
     func apply(input : [String : AnyObject], fields : [String : AnyObject]) -> Bool {
         
         return predicates.reduce(true) {
-            let rule = $1.rule(fields)
             let result = $1.apply(input, fields: fields)
             //            println("Applying predicate: \(result)")
             return $0 && result

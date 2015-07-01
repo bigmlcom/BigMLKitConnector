@@ -10,12 +10,19 @@ import Foundation
 
 let DEPTH_FACTOR : Double = 0.5772156649
 
+/**
+* Tree structure for the BigML anomaly detector
+*
+* This class defines an auxiliary tree that is used when calculating
+* anomaly scores without needing to send requests to BigML.io.
+*
+*/
 class AnomalyTree {
     
     internal let fields : [String : AnyObject]
     let anomaly : Anomaly
     var predicates : Predicates
-    var id : AnyObject?
+    var id : String = ""
     var children : [AnomalyTree] = []
     
     init(tree : [String : AnyObject], anomaly : Anomaly) {
@@ -25,7 +32,9 @@ class AnomalyTree {
         self.predicates = Predicates(predicates: ["True"])
         if let predicates = tree["predicates"] as? [[String : AnyObject]] {
             self.predicates = Predicates(predicates: predicates)
-            self.id = .None
+        }
+        if let id = tree["id"] as? String {
+            self.id = id
         }
         if let children = tree["children"] as? [[String : AnyObject]] {
             self.children = children.map {
@@ -34,6 +43,18 @@ class AnomalyTree {
         }
     }
     
+    /**
+    *
+    * Returns the depth of the tree that the input data "verifies"
+    * and the associated set of rules.
+    *
+    * If a node has any child whose predicates are all true for the given
+    * input, then the depth is incremented and we flow through.
+    * If the node has no children or no children with all valid predicates,
+    * then it outputs the depth of the node.
+    *
+    * @return
+    */
     func depth(input : [String : AnyObject], path : [String] = [], depth : Int = 0) -> (Int, [String]) {
         
         var depth = depth
@@ -41,7 +62,7 @@ class AnomalyTree {
             if !self.predicates.apply(input, fields: self.fields) {
                 return (depth, path)
             }
-            depth += 1
+            depth++
         }
         var path = path
         for child in self.children {
