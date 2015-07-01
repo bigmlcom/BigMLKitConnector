@@ -104,9 +104,19 @@ class BMLRegex {
         let matches = self.internalExpression?.matchesInString(input, options: nil, range:NSMakeRange(0, count(input)))
         return matches?.count > 0
     }
+
+    func matchCount(input: String) -> Int {
+        let matches = self.internalExpression?.matchesInString(input, options: nil, range:NSMakeRange(0, count(input)))
+        return (matches == nil) ? 0 : matches!.count
+    }
 }
 
 infix operator =~ { associativity left precedence 160 }
 func =~ (input: String, pattern: String) -> Bool {
     return BMLRegex(pattern).test(input)
+}
+
+infix operator =~~ { associativity left precedence 160 }
+func =~~ (input: String, pattern: String) -> Int {
+    return BMLRegex(pattern).matchCount(input)
 }
