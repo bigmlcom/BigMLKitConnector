@@ -190,42 +190,44 @@ public class BMLConnector : NSObject {
     
         if (resource.type == BMLResourceType.Project) {
             completion(resource: resource, error: nil)
-        }
-        self.getIntermediateResource(resource.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
-            
-            var localError = error
-            if (localError == nil) {
-                if let statusDict = resourceDict["status"] as? [String : AnyObject], statusCodeInt = statusDict["code"] as? Int {
-                    let statusCode = BMLResourceStatus(integerLiteral: statusCodeInt)
-                    println("Monitoring status \(statusCode.rawValue)")
-                    if (statusCode < BMLResourceStatus.Waiting) {
-                        if let code = statusDict["error"] as? Int {
-                            localError = NSError(status: statusDict, code: code)
-                        }
-                        resource.status = BMLResourceStatus.Failed
-                    } else if (statusCode < BMLResourceStatus.Ended) {
-                        delay(1.0) {
-                            self.trackResourceStatus(resource, completion: completion)
-                        }
-                        if (resource.status != statusCode) {
-                            resource.status = statusCode
-                            if let progress = statusDict["progress"] as? Float {
-                                resource.progress = progress
+        } else {
+            self.getIntermediateResource(resource.type, uuid: resource.uuid) { (resourceDict, error) -> Void in
+                
+                var localError = error
+                if (localError == nil) {
+                    if let statusDict = resourceDict["status"] as? [String : AnyObject],
+                        statusCodeInt = statusDict["code"] as? Int {
+                        let statusCode = BMLResourceStatus(integerLiteral: statusCodeInt)
+                        println("Monitoring status \(statusCode.rawValue)")
+                        if (statusCode < BMLResourceStatus.Waiting) {
+                            if let code = statusDict["error"] as? Int {
+                                localError = NSError(status: statusDict, code: code)
                             }
+                            resource.status = BMLResourceStatus.Failed
+                        } else if (statusCode < BMLResourceStatus.Ended) {
+                            delay(1.0) {
+                                self.trackResourceStatus(resource, completion: completion)
+                            }
+                            if (resource.status != statusCode) {
+                                resource.status = statusCode
+                                if let progress = statusDict["progress"] as? Float {
+                                    resource.progress = progress
+                                }
+                            }
+                        } else if (statusCode == BMLResourceStatus.Ended) {
+                            resource.status = statusCode
+                            resource.jsonDefinition = resourceDict
+                            completion(resource: resource, error: error)
                         }
-                    } else if (statusCode == BMLResourceStatus.Ended) {
-                        resource.status = statusCode
-                        resource.jsonDefinition = resourceDict
-                        completion(resource: resource, error: error)
+                    } else {
+                        localError = NSError(info: "Bad response format: no status found", code: -10001)
                     }
-                } else {
-                    localError = NSError(info: "Bad response format: no status found", code: -10001)
                 }
-            }
-            if (localError != nil) {
-                println("Tracking error \(localError)")
-                resource.status = BMLResourceStatus.Failed
-                completion(resource: nil, error: localError)
+                if (localError != nil) {
+                    println("Tracking error \(localError)")
+                    resource.status = BMLResourceStatus.Failed
+                    completion(resource: nil, error: localError)
+                }
             }
         }
     }
