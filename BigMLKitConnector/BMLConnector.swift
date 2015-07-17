@@ -57,7 +57,13 @@ public class BMLConnector : NSObject {
                 
                 if (from.type == BMLResourceType.File) {
                     
-                    self.connector.upload(url, filename:name, filePath:from.uuid, body: options, completion: completionBlock)
+                    if (NSFileManager.defaultManager().fileExistsAtPath(from.uuid) &&
+                        NSData(contentsOfFile:from.uuid) != nil) {
+                            
+                        self.connector.upload(url, filename:name, filePath:from.uuid, body: options, completion: completionBlock)
+                    } else {
+                        completionBlock(result: [:], error: NSError(info: "Input file not found", code:-10002))
+                    }
                     
                 } else {
 
