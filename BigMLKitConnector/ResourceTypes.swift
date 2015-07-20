@@ -23,6 +23,7 @@ import Foundation
     case Cluster
     case Anomaly
     case Ensemble
+    case Evaluation
     case Prediction
     case Project
     case WhizzmlScript
@@ -49,6 +50,8 @@ import Foundation
             self = Anomaly
         case "ensemble":
             self = Ensemble
+        case "evaluation":
+            self = Evaluation
         case "script":
             self = WhizzmlScript
         case "execution":
@@ -90,6 +93,8 @@ import Foundation
             return "anomaly"
         case Ensemble:
             return "anomaly"
+        case Evaluation:
+            return "evaluation"
         case WhizzmlScript:
             return "script"
         case WhizzmlExecution:
