@@ -26,6 +26,7 @@ import Foundation
     case Evaluation
     case Prediction
     case Project
+    case Configuration
     case WhizzmlScript
     case WhizzmlExecution
     case NotAResource
@@ -52,6 +53,8 @@ import Foundation
             self = Ensemble
         case "evaluation":
             self = Evaluation
+        case "configuration":
+            self = Configuration
         case "script":
             self = WhizzmlScript
         case "execution":
@@ -93,6 +96,8 @@ import Foundation
             return "anomaly"
         case Ensemble:
             return "anomaly"
+        case Configuration:
+            return "configuration"
         case Evaluation:
             return "evaluation"
         case WhizzmlScript:
