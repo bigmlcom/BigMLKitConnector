@@ -8,6 +8,13 @@
 
 import Foundation
 
+extension NSHTTPURLResponse {
+    
+    func isStrictlyValid() -> Bool {
+        return self.statusCode >= 200 && self.statusCode <= 202
+    }
+}
+
 struct BMLLLConnector {
     
     let username : String
@@ -49,9 +56,10 @@ struct BMLLLConnector {
         let task = self.session.dataTaskWithRequest(request) { (data : NSData!, response : NSURLResponse!, error : NSError!) in
             var localError : NSError? = error;
             if (error == nil) {
-                if let response = response as? NSHTTPURLResponse {
+                if let response = response as? NSHTTPURLResponse where response.isStrictlyValid() {
                 } else {
-                    localError = NSError(info:"Bad response format", code:-10001)
+                    let url = response.URL ?? ""
+                    localError = NSError(info:"Bad response format for URL: \(url)", code:-10001)
                 }
             }
             var result = []

@@ -88,27 +88,28 @@ public class BMLConnector : NSObject {
                     
                     var localError = error;
                     var resources : [BMLResource] = []
-                    if let jsonDict = jsonObject as? [String : AnyObject],
-                        jsonResources = jsonDict["objects"] as? [AnyObject] {
+                    if (error == nil) {
+                        if let jsonDict = jsonObject as? [String : AnyObject],
+                            jsonResources = jsonDict["objects"] as? [AnyObject] {
 
-                        resources = jsonResources.map {
-                            
-                            if let type = $0["resource"] as? String,
-                                resourceDict = $0 as? [String : AnyObject] {
+                            resources = jsonResources.map {
                                 
-                                return BMLMinimalResource(name: $0["name"] as! String,
-                                    fullUuid:$0["resource"] as! String,
-                                    definition:resourceDict)
-                            } else {
-                                localError = NSError(info:"Bad response format", code:-10001)
-                                return BMLMinimalResource(name: "Wrong Resource",
-                                    fullUuid: "Wrong/Resource",
-                                    definition: [:])
+                                if let type = $0["resource"] as? String,
+                                    resourceDict = $0 as? [String : AnyObject] {
+                                    
+                                    return BMLMinimalResource(name: $0["name"] as! String,
+                                        fullUuid:$0["resource"] as! String,
+                                        definition:resourceDict)
+                                } else {
+                                    localError = NSError(info:"Bad response format", code:-10001)
+                                    return BMLMinimalResource(name: "Wrong Resource",
+                                        fullUuid: "Wrong/Resource",
+                                        definition: [:])
+                                }
                             }
+                        } else {
+                            localError = NSError(info:"Bad response format", code:-10001)
                         }
-                    } else {
-                        localError = NSError(info:"Bad response format", code:-10001)
-//                        println("RESPONSE: \(jsonObject)")
                     }
                     completion(resources: resources, error: localError)
                 }
@@ -154,6 +155,9 @@ public class BMLConnector : NSObject {
                     if let jsonDict = jsonObject as? [String : AnyObject],
                         code = jsonDict["code"] as? Int {
                         resourceDict = jsonDict
+                            if code != 200 {
+                                localError = NSError(info:"No data retrieved", code:-10002)
+                            }
                     } else {
                         localError = NSError(info:"Bad response format", code:-10001)
                     }
