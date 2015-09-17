@@ -35,7 +35,7 @@ public class FieldedResource : NSObject {
     func normalizedValue(value : AnyObject) -> AnyObject? {
         
         if let value = value as? String, missingTokens = missingTokens {
-            if contains(missingTokens, value) {
+            if missingTokens.contains(value) {
                 return .None
             }
         }

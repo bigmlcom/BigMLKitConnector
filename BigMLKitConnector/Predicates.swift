@@ -38,7 +38,7 @@ class Predicate {
         self.missing = false
         if self.op =~ "\\*$" {
             self.missing = true
-            self.op = self.op.substringToIndex(advance(self.op.startIndex, count(self.op)-1))
+            self.op = self.op.substringToIndex(self.op.startIndex.advancedBy(self.op.characters.count-1))
         }
     }
     
@@ -75,7 +75,7 @@ class Predicate {
                         relationLiteral = fullTerm ? " is equal to " : " contains "
                         if !fullTerm {
                             if self.op != ">" || value != 0 {
-                                let times = plural("time", value)
+                                let times = plural("time", multiplicity: value)
                                 if self.op == ">=" {
                                     relationSuffix = "\(value) \(times) at most"
                                 } else if self.op == "<=" {
@@ -117,7 +117,7 @@ class Predicate {
         if (tokenMode == Predicate.TM_FULL_TERMS) {
             return self.fullTermCount(text, fullTerm: firstTerm, caseSensitive: caseSensitive)
         }
-        if (tokenMode == Predicate.TM_ALL && count(forms) == 1) {
+        if (tokenMode == Predicate.TM_ALL && forms.count == 1) {
             if (firstTerm =~ Predicate.FULL_TERM_PATTERN) {
                 return self.fullTermCount(text, fullTerm: firstTerm, caseSensitive: caseSensitive)
             }
@@ -132,7 +132,7 @@ class Predicate {
 
     func tokenTermCount(text : String, forms : [String], caseSensitive : Bool) -> Int {
 
-        let fre = "(\\b|_)".join(forms)
+        let fre = forms.joinWithSeparator("(\\b|_)")
         let re = "(\\b|_)\(fre)(\\b|_)"
         return text =~~ re
     }
@@ -218,7 +218,7 @@ class Predicates {
         let strings = self.predicates.filter({ $0.op != "TRUE" }).map() {
             return $0.rule(fields, label: label)
         }
-        return " and ".join(strings)
+        return strings.joinWithSeparator(" and ")
     }
     
     func apply(input : [String : AnyObject], fields : [String : AnyObject]) -> Bool {

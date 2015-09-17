@@ -73,19 +73,19 @@ extension Dictionary {
     }
     
     func map<U>(transform: Value -> U) -> [Key : U] {
-        return Dictionary<Key, U>(Swift.map(self, { (key, value) in (key, transform(value)) }))
+        return Dictionary<Key, U>(self.map({ (key, value) in (key, transform(value)) }))
     }
     
     func map<T : Hashable, U>(transform: (Key, Value) -> (T, U)) -> [T : U] {
-        return Dictionary<T, U>(Swift.map(self, transform))
+        return Dictionary<T, U>(self.map(transform))
     }
     
     func filter(includeElement: Element -> Bool) -> [Key : Value] {
-        return Dictionary(Swift.filter(self, includeElement))
+        return Dictionary(self.filter(includeElement))
     }
     
     func reduce<U>(initial: U, @noescape combine: (U, Element) -> U) -> U {
-        return Swift.reduce(self, initial, combine)
+        return self.reduce(initial, combine: combine)
     }
 }
 
@@ -97,16 +97,21 @@ class BMLRegex {
     init(_ pattern: String) {
         self.pattern = pattern
         var error: NSError?
-        self.internalExpression = NSRegularExpression(pattern: pattern, options: .CaseInsensitive, error: &error)
+        do {
+            self.internalExpression = try NSRegularExpression(pattern: pattern, options: .CaseInsensitive)
+        } catch let error1 as NSError {
+            error = error1
+            self.internalExpression = nil
+        }
     }
     
     func test(input: String) -> Bool {
-        let matches = self.internalExpression?.matchesInString(input, options: nil, range:NSMakeRange(0, count(input)))
+        let matches = self.internalExpression?.matchesInString(input, options: [], range:NSMakeRange(0, input.characters.count))
         return matches?.count > 0
     }
 
     func matchCount(input: String) -> Int {
-        let matches = self.internalExpression?.matchesInString(input, options: nil, range:NSMakeRange(0, count(input)))
+        let matches = self.internalExpression?.matchesInString(input, options: [], range:NSMakeRange(0, input.characters.count))
         return (matches == nil) ? 0 : matches!.count
     }
 }

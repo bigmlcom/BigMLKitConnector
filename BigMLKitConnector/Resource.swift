@@ -63,7 +63,7 @@ public class BMLMinimalResource : NSObject, BMLResource {
     
     public required init(name : String, fullUuid : String, definition : [String : AnyObject]) {
         
-        let components = split(fullUuid) {$0 == "/"}
+        let components = fullUuid.characters.split {$0 == "/"}.map { String($0) }
         self.name = name
         self.type = BMLResourceType(stringLiteral: components[0])
         self.uuid = components[1]

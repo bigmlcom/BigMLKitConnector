@@ -152,7 +152,7 @@ public class Anomaly : FieldedResource {
         assert(self.iforest != nil, "Could not find forest info. The anomaly was possibly not completely created")
         if let iforest = self.iforest {
             let inputData = self.filterInputData(input, byName: byName)
-            var depthSum = iforest.reduce(0) {
+            let depthSum = iforest.reduce(0) {
                 if let tree = $1 {
                     return $0 + (self.stopped ? 0 : tree.depth(inputData).0)
                 }

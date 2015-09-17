@@ -44,8 +44,8 @@ struct BMLLLConnector {
         
         var result = ""
         for (key, value) in options {
-            if (count(value) > 0) {
-                let trimmedOption = value.substringWithRange(Range<String.Index>(start: advance(value.startIndex, 1), end: advance(value.endIndex, -1)))
+            if (value.characters.count > 0) {
+                let trimmedOption = value.substringWithRange(Range<String.Index>(start: value.startIndex.advancedBy(1), end: value.endIndex.advancedBy(-1)))
                 result = "\(result), \(trimmedOption)"
             }
         }
@@ -53,16 +53,15 @@ struct BMLLLConnector {
     
     mutating func dataWithRequest(request : NSURLRequest, completion:(data : NSData!, error : NSError!) -> Void) {
         
-        let task = self.session.dataTaskWithRequest(request) { (data : NSData!, response : NSURLResponse!, error : NSError!) in
+        let task = self.session.dataTaskWithRequest(request) { (data : NSData?, response : NSURLResponse?, error : NSError?) in
             var localError : NSError? = error;
             if (error == nil) {
                 if let response = response as? NSHTTPURLResponse where response.isStrictlyValid() {
                 } else {
-                    let url = response.URL ?? ""
+                    let url = response?.URL ?? ""
                     localError = NSError(info:"Bad response format for URL: \(url)", code:-10001)
                 }
             }
-            var result = []
             completion(data: data, error: localError)
         }
         task.resume()
@@ -77,7 +76,7 @@ struct BMLLLConnector {
             
             var localError : NSError? = error;
             if (localError == nil) {
-                let jsonObject: AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:nil)
+                let jsonObject: AnyObject? = try? NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments)
                 if let jsonDict = jsonObject as? [String : AnyObject],
                     status = jsonDict["status"] as? [String : AnyObject],
                     code = jsonDict["code"] as? Int {
@@ -93,7 +92,8 @@ struct BMLLLConnector {
     mutating func put(url : NSURL, body : [String : AnyObject], completion:(error : NSError?) -> Void) {
         
         var localError : NSError? = nil
-        if let bodyData = NSJSONSerialization.dataWithJSONObject(body, options: nil, error:&localError) {
+        do {
+            let bodyData = try NSJSONSerialization.dataWithJSONObject(body, options: [])
             let request = NSMutableURLRequest(URL:url)
             request.HTTPBody = bodyData
             request.HTTPMethod = "PUT";
@@ -102,7 +102,7 @@ struct BMLLLConnector {
                 
                 var localError : NSError? = error;
                 if (error == nil) {
-                    let jsonObject: AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:nil)
+                    let jsonObject: AnyObject? = try? NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments)
                     if let jsonDict = jsonObject as? [String : AnyObject],
                         status = jsonDict["status"] as? [String : AnyObject],
                         code = jsonDict["code"] as? Int {
@@ -113,7 +113,8 @@ struct BMLLLConnector {
                 }
                 completion(error: localError)
             }
-        } else {
+        } catch let error1 as NSError {
+            localError = error1
             completion(error: localError)
         }
     }
@@ -125,7 +126,14 @@ struct BMLLLConnector {
             var localError : NSError? = error;
             var jsonObject : AnyObject?
             if (error == nil) {
-                jsonObject = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
+                do {
+                    jsonObject = try NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments)
+                } catch let error as NSError {
+                    localError = error
+                    jsonObject = nil
+                } catch {
+                    fatalError()
+                }
             }
             completion(jsonObject: jsonObject, error: localError)
         }
@@ -134,7 +142,8 @@ struct BMLLLConnector {
     mutating func post(url : NSURL, body: [String : AnyObject], completion:(result : [String : AnyObject], error : NSError?) -> Void) {
         
         var localError : NSError? = nil
-        if let bodyData = NSJSONSerialization.dataWithJSONObject(body, options: nil, error:&localError) {
+        do {
+            let bodyData = try NSJSONSerialization.dataWithJSONObject(body, options: [])
             let request = NSMutableURLRequest(URL:url)
             request.HTTPBody = bodyData
             request.HTTPMethod = "POST";
@@ -146,7 +155,15 @@ struct BMLLLConnector {
                 var result = ["" : "" as AnyObject]
                 if (error == nil) {
                     
-                    let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
+                    let jsonObject : AnyObject?
+                    do {
+                        jsonObject = try NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments)
+                    } catch let error as NSError {
+                        localError = error
+                        jsonObject = nil
+                    } catch {
+                        fatalError()
+                    }
                     if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                         result = jsonDict
                         if (code != 201) {
@@ -158,7 +175,8 @@ struct BMLLLConnector {
                 }
                 completion(result: result, error: localError)
             }
-        } else {
+        } catch let error1 as NSError {
+            localError = error1
             completion(result: [:], error: localError)
         }
     }
@@ -171,12 +189,15 @@ struct BMLLLConnector {
         var error : NSError? = nil
         let bodyData : NSMutableData = NSMutableData()
         for (name, value) in body {
-            if let fieldData = NSJSONSerialization.dataWithJSONObject(value, options: nil, error:&error) {
+            do {
+                let fieldData = try NSJSONSerialization.dataWithJSONObject(value, options: [])
                 if let value = NSString(data: fieldData, encoding:NSUTF8StringEncoding) {
                     bodyData.appendString("\r\n--\(boundary)\r\n")
                     bodyData.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n")
                     bodyData.appendString("\r\n\(value)")
                 }
+            } catch let error1 as NSError {
+                error = error1
             }
         }
         bodyData.appendString("\r\n--\(boundary)\r\n")
@@ -195,7 +216,15 @@ struct BMLLLConnector {
             var result = ["" : "" as AnyObject]
             if (error == nil) {
                 
-                let jsonObject : AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments, error:&localError)
+                let jsonObject : AnyObject?
+                do {
+                    jsonObject = try NSJSONSerialization.JSONObjectWithData(data, options:NSJSONReadingOptions.AllowFragments)
+                } catch let error as NSError {
+                    localError = error
+                    jsonObject = nil
+                } catch {
+                    fatalError()
+                }
                 if let jsonDict = jsonObject as? [String : AnyObject], code = jsonDict["code"] as? Int {
                     result = jsonDict
                     if (code != 201) {

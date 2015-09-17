@@ -120,7 +120,7 @@ import Foundation
  * in Objective-C.
  */
 
-@objc public class BMLResourceTypeIdentifier : NSObject, StringLiteralConvertible, Printable {
+@objc public class BMLResourceTypeIdentifier : NSObject, StringLiteralConvertible {
     
     public var type : BMLResourceType
     

@@ -208,7 +208,7 @@ public class BMLConnector : NSObject {
                     if let statusDict = resourceDict["status"] as? [String : AnyObject],
                         statusCodeInt = statusDict["code"] as? Int {
                         let statusCode = BMLResourceStatus(integerLiteral: statusCodeInt)
-                        println("Monitoring status \(statusCode.rawValue)")
+                        print("Monitoring status \(statusCode.rawValue)")
                         if (statusCode < BMLResourceStatus.Waiting) {
                             if let code = statusDict["error"] as? Int {
                                 localError = NSError(status: statusDict, code: code)
@@ -234,7 +234,7 @@ public class BMLConnector : NSObject {
                     }
                 }
                 if (localError != nil) {
-                    println("Tracking error \(localError)")
+                    print("Tracking error \(localError)")
                     resource.status = BMLResourceStatus.Failed
                     completion(resource: nil, error: localError)
                 }
