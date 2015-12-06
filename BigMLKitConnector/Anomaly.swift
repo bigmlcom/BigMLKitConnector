@@ -1,10 +1,16 @@
+// Copyright 2015-2016 BigML
 //
-//  Anomaly.swift
-//  BigMLX
+// Licensed under the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License. You may obtain
+// a copy of the License at
 //
-//  Created by sergio on 19/06/15.
-//  Copyright (c) 2015 sergio. All rights reserved.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
 
 import Foundation
 
@@ -66,12 +72,12 @@ class AnomalyTree {
         }
         var path = path
         for child in self.children {
+            if self.anomaly.stopped {
+                return (0, [])
+            }
             if child.predicates.apply(input, fields: self.fields) {
                 path.append(child.predicates.rule(self.fields))
                 return child.depth(input, path: path, depth: depth+1)
-            }
-            if self.anomaly.stopped {
-                return (0, [])
             }
         }
         return (depth, path)
@@ -106,7 +112,7 @@ public class Anomaly : FieldedResource {
         if let model = anomaly.jsonDefinition["model"] as? [String : AnyObject],
             fields = model["fields"] as? [String : AnyObject] {
                 
-                if let topAnomalies = model["top_anomalies"] as? [AnyObject] {
+                if let _ = model["top_anomalies"] as? [AnyObject] {
                     
                     super.init(fields: fields)
                     
@@ -120,7 +126,7 @@ public class Anomaly : FieldedResource {
                                     let defaultDepth = 2 * (DEPTH_FACTOR + log(sampleSize - 1) - ((sampleSize - 1) / sampleSize))
                                     self.expectedMeanDepth = min(meanDepth, defaultDepth)
                                 } else {
-                                    //-- HANDLE ERROR HERE: anomaly is not complete
+                                    assert(false, "Could not create anomaly instance");
                                 }
                                 if let iforest = model["trees"] as? [AnyObject] {
                                     self.iforest = iforest.map {
@@ -133,7 +139,7 @@ public class Anomaly : FieldedResource {
                                     }
                                 }
                             } else {
-                                //-- HANDLE ERROR HERE: anomaly is not complete
+                                assert(false, "Could not create anomaly instance");
                             }
                     }
                 } else {
@@ -151,7 +157,7 @@ public class Anomaly : FieldedResource {
         self.stopped = false
         assert(self.iforest != nil, "Could not find forest info. The anomaly was possibly not completely created")
         if let iforest = self.iforest {
-            let inputData = self.filterInputData(input, byName: byName)
+            let inputData = self.filteredInputData(input, byName: byName)
             let depthSum = iforest.reduce(0) {
                 if let tree = $1 {
                     return $0 + (self.stopped ? 0 : tree.depth(inputData).0)

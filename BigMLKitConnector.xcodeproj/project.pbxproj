@@ -7,9 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4910F6241BFDE3C30087E85A /* PredictionTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4910F6231BFDE3C30087E85A /* PredictionTree.swift */; settings = {ASSET_TAGS = (); }; };
+		4910F6261BFF536B0087E85A /* TreePrediction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4910F6251BFF536B0087E85A /* TreePrediction.swift */; settings = {ASSET_TAGS = (); }; };
+		4910F6281BFF6D3E0087E85A /* BigMLEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4910F6271BFF6D3E0087E85A /* BigMLEnums.swift */; settings = {ASSET_TAGS = (); }; };
 		492D8BAC1B176686002602B3 /* BMLKitConnectorPredicateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492D8BAB1B176686002602B3 /* BMLKitConnectorPredicateTests.swift */; };
 		492DC2A31AF75AEB0053F908 /* credentials.plist in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A21AF75AEB0053F908 /* credentials.plist */; };
 		492DC2AD1AF8B8A60053F908 /* BMLSigHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */; };
+		493A278D1C04E4650087AEB7 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A278C1C04E4650087AEB7 /* Model.swift */; settings = {ASSET_TAGS = (); }; };
+		493A278F1C0708360087AEB7 /* BigMLKitConnectorPredictionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A278E1C0708360087AEB7 /* BigMLKitConnectorPredictionTests.swift */; settings = {ASSET_TAGS = (); }; };
+		493A27981C0709070087AEB7 /* iris.ensemble in Resources */ = {isa = PBXBuildFile; fileRef = 493A27911C0709070087AEB7 /* iris.ensemble */; settings = {ASSET_TAGS = (); }; };
+		493A27991C0709070087AEB7 /* iris.model in Resources */ = {isa = PBXBuildFile; fileRef = 493A27921C0709070087AEB7 /* iris.model */; settings = {ASSET_TAGS = (); }; };
+		493A279A1C0709070087AEB7 /* spam-text.cluster in Resources */ = {isa = PBXBuildFile; fileRef = 493A27931C0709070087AEB7 /* spam-text.cluster */; settings = {ASSET_TAGS = (); }; };
+		493A279B1C0709070087AEB7 /* spam.cluster in Resources */ = {isa = PBXBuildFile; fileRef = 493A27941C0709070087AEB7 /* spam.cluster */; settings = {ASSET_TAGS = (); }; };
+		493A279C1C0709070087AEB7 /* spam.model in Resources */ = {isa = PBXBuildFile; fileRef = 493A27951C0709070087AEB7 /* spam.model */; settings = {ASSET_TAGS = (); }; };
+		493A279D1C0709070087AEB7 /* testAnomaly.json in Resources */ = {isa = PBXBuildFile; fileRef = 493A27961C0709070087AEB7 /* testAnomaly.json */; settings = {ASSET_TAGS = (); }; };
+		493A279E1C0709070087AEB7 /* testCluster.json in Resources */ = {isa = PBXBuildFile; fileRef = 493A27971C0709070087AEB7 /* testCluster.json */; settings = {ASSET_TAGS = (); }; };
+		493A27A21C0871E70087AEB7 /* BigMLKitConnectorBaseTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A27A11C0871E70087AEB7 /* BigMLKitConnectorBaseTest.swift */; settings = {ASSET_TAGS = (); }; };
+		493A27A41C08AC740087AEB7 /* Cluster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A27A31C08AC740087AEB7 /* Cluster.swift */; settings = {ASSET_TAGS = (); }; };
+		493A27A61C08C7910087AEB7 /* PredictionCentroid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A27A51C08C7910087AEB7 /* PredictionCentroid.swift */; settings = {ASSET_TAGS = (); }; };
+		493A27A81C0CCBA40087AEB7 /* BigMLKitConncetorCentroidTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A27A71C0CCBA40087AEB7 /* BigMLKitConncetorCentroidTests.swift */; settings = {ASSET_TAGS = (); }; };
+		493A27AA1C0F1C9C0087AEB7 /* salaries.csv in Resources */ = {isa = PBXBuildFile; fileRef = 493A27A91C0F1C9C0087AEB7 /* salaries.csv */; settings = {ASSET_TAGS = (); }; };
+		493A27AC1C0F4DFB0087AEB7 /* Ensemble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A27AB1C0F4DFB0087AEB7 /* Ensemble.swift */; settings = {ASSET_TAGS = (); }; };
+		493A27AE1C104F850087AEB7 /* MultiModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A27AD1C104F850087AEB7 /* MultiModel.swift */; settings = {ASSET_TAGS = (); }; };
+		493A27B01C1058490087AEB7 /* MultiVote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493A27AF1C1058490087AEB7 /* MultiVote.swift */; settings = {ASSET_TAGS = (); }; };
 		49962D331AFD15D600E2FA55 /* wines.csv in Resources */ = {isa = PBXBuildFile; fileRef = 49962D301AFD15D600E2FA55 /* wines.csv */; };
 		49962D341AFD15D600E2FA55 /* iris.csv in Resources */ = {isa = PBXBuildFile; fileRef = 49962D311AFD15D600E2FA55 /* iris.csv */; };
 		49962D351AFD15D600E2FA55 /* diab.csv in Resources */ = {isa = PBXBuildFile; fileRef = 49962D321AFD15D600E2FA55 /* diab.csv */; };
@@ -47,12 +67,32 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4910F6231BFDE3C30087E85A /* PredictionTree.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PredictionTree.swift; sourceTree = "<group>"; };
+		4910F6251BFF536B0087E85A /* TreePrediction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TreePrediction.swift; sourceTree = "<group>"; };
+		4910F6271BFF6D3E0087E85A /* BigMLEnums.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigMLEnums.swift; sourceTree = "<group>"; };
 		492D8BAB1B176686002602B3 /* BMLKitConnectorPredicateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BMLKitConnectorPredicateTests.swift; sourceTree = "<group>"; };
 		492DC2A21AF75AEB0053F908 /* credentials.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = credentials.plist; sourceTree = "<group>"; };
 		492DC2AA1AF8B8A50053F908 /* BigMLKitConnectorTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BigMLKitConnectorTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BMLSigHandler.c; sourceTree = "<group>"; };
 		492DC2AC1AF8B8A60053F908 /* BMLSigHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BMLSigHandler.h; sourceTree = "<group>"; };
 		492DC2AE1AFA74190053F908 /* BigMLKitConnectorObjcTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BigMLKitConnectorObjcTests.m; sourceTree = "<group>"; };
+		493A278C1C04E4650087AEB7 /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		493A278E1C0708360087AEB7 /* BigMLKitConnectorPredictionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigMLKitConnectorPredictionTests.swift; sourceTree = "<group>"; };
+		493A27911C0709070087AEB7 /* iris.ensemble */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iris.ensemble; sourceTree = "<group>"; };
+		493A27921C0709070087AEB7 /* iris.model */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iris.model; sourceTree = "<group>"; };
+		493A27931C0709070087AEB7 /* spam-text.cluster */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "spam-text.cluster"; sourceTree = "<group>"; };
+		493A27941C0709070087AEB7 /* spam.cluster */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = spam.cluster; sourceTree = "<group>"; };
+		493A27951C0709070087AEB7 /* spam.model */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = spam.model; sourceTree = "<group>"; };
+		493A27961C0709070087AEB7 /* testAnomaly.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = testAnomaly.json; sourceTree = "<group>"; };
+		493A27971C0709070087AEB7 /* testCluster.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = testCluster.json; sourceTree = "<group>"; };
+		493A27A11C0871E70087AEB7 /* BigMLKitConnectorBaseTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigMLKitConnectorBaseTest.swift; sourceTree = "<group>"; };
+		493A27A31C08AC740087AEB7 /* Cluster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cluster.swift; sourceTree = "<group>"; };
+		493A27A51C08C7910087AEB7 /* PredictionCentroid.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PredictionCentroid.swift; sourceTree = "<group>"; };
+		493A27A71C0CCBA40087AEB7 /* BigMLKitConncetorCentroidTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigMLKitConncetorCentroidTests.swift; sourceTree = "<group>"; };
+		493A27A91C0F1C9C0087AEB7 /* salaries.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = salaries.csv; sourceTree = "<group>"; };
+		493A27AB1C0F4DFB0087AEB7 /* Ensemble.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Ensemble.swift; sourceTree = "<group>"; };
+		493A27AD1C104F850087AEB7 /* MultiModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiModel.swift; sourceTree = "<group>"; };
+		493A27AF1C1058490087AEB7 /* MultiVote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiVote.swift; sourceTree = "<group>"; };
 		49962D301AFD15D600E2FA55 /* wines.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wines.csv; sourceTree = "<group>"; };
 		49962D311AFD15D600E2FA55 /* iris.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iris.csv; sourceTree = "<group>"; };
 		49962D321AFD15D600E2FA55 /* diab.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = diab.csv; sourceTree = "<group>"; };
@@ -92,6 +132,42 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4910F6221BFDE3500087E85A /* Algorithms */ = {
+			isa = PBXGroup;
+			children = (
+				49E4B1601B3449C3002929AC /* Anomaly.swift */,
+				493A278C1C04E4650087AEB7 /* Model.swift */,
+				49E4B1611B3449C3002929AC /* FieldResource.swift */,
+				49E4B1631B3449C3002929AC /* Predicates.swift */,
+				4910F6231BFDE3C30087E85A /* PredictionTree.swift */,
+				4910F6251BFF536B0087E85A /* TreePrediction.swift */,
+				493A27A31C08AC740087AEB7 /* Cluster.swift */,
+				493A27A51C08C7910087AEB7 /* PredictionCentroid.swift */,
+				493A27AB1C0F4DFB0087AEB7 /* Ensemble.swift */,
+				493A27AD1C104F850087AEB7 /* MultiModel.swift */,
+				493A27AF1C1058490087AEB7 /* MultiVote.swift */,
+			);
+			name = Algorithms;
+			sourceTree = "<group>";
+		};
+		493A27901C0708C40087AEB7 /* data */ = {
+			isa = PBXGroup;
+			children = (
+				493A27A91C0F1C9C0087AEB7 /* salaries.csv */,
+				49962D301AFD15D600E2FA55 /* wines.csv */,
+				49962D311AFD15D600E2FA55 /* iris.csv */,
+				49962D321AFD15D600E2FA55 /* diab.csv */,
+				493A27911C0709070087AEB7 /* iris.ensemble */,
+				493A27921C0709070087AEB7 /* iris.model */,
+				493A27931C0709070087AEB7 /* spam-text.cluster */,
+				493A27941C0709070087AEB7 /* spam.cluster */,
+				493A27951C0709070087AEB7 /* spam.model */,
+				493A27961C0709070087AEB7 /* testAnomaly.json */,
+				493A27971C0709070087AEB7 /* testCluster.json */,
+			);
+			name = data;
+			sourceTree = "<group>";
+		};
 		49C5AA641AEF943800B81AA6 = {
 			isa = PBXGroup;
 			children = (
@@ -113,17 +189,16 @@
 		49C5AA701AEF943800B81AA6 /* BigMLKitConnector */ = {
 			isa = PBXGroup;
 			children = (
+				4910F6221BFDE3500087E85A /* Algorithms */,
 				49C5AA731AEF943800B81AA6 /* BigMLKitConnector.h */,
-				49C5AA711AEF943800B81AA6 /* Supporting Files */,
 				49C5AAB81AEF952100B81AA6 /* BMLConnector.swift */,
-				49E4B1601B3449C3002929AC /* Anomaly.swift */,
-				49E4B1611B3449C3002929AC /* FieldResource.swift */,
 				49E4B1621B3449C3002929AC /* LLConnector.swift */,
-				49E4B1631B3449C3002929AC /* Predicates.swift */,
 				49E4B1641B3449C3002929AC /* Resource.swift */,
 				49E4B1651B3449C3002929AC /* ResourceStatus.swift */,
 				49E4B1661B3449C3002929AC /* ResourceTypes.swift */,
 				49E4B1671B3449C3002929AC /* Utils.swift */,
+				4910F6271BFF6D3E0087E85A /* BigMLEnums.swift */,
+				49C5AA711AEF943800B81AA6 /* Supporting Files */,
 			);
 			path = BigMLKitConnector;
 			sourceTree = "<group>";
@@ -139,14 +214,18 @@
 		49C5AA7D1AEF943900B81AA6 /* BigMLKitConnectorTests */ = {
 			isa = PBXGroup;
 			children = (
-				49C5AA7E1AEF943900B81AA6 /* Supporting Files */,
-				49C5AA801AEF943900B81AA6 /* BigMLKitConnectorTests.swift */,
+				493A27901C0708C40087AEB7 /* data */,
 				492DC2AE1AFA74190053F908 /* BigMLKitConnectorObjcTests.m */,
+				493A27A11C0871E70087AEB7 /* BigMLKitConnectorBaseTest.swift */,
+				49C5AA801AEF943900B81AA6 /* BigMLKitConnectorTests.swift */,
 				492D8BAB1B176686002602B3 /* BMLKitConnectorPredicateTests.swift */,
+				493A278E1C0708360087AEB7 /* BigMLKitConnectorPredictionTests.swift */,
 				492DC2A21AF75AEB0053F908 /* credentials.plist */,
 				492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */,
 				492DC2AC1AF8B8A60053F908 /* BMLSigHandler.h */,
 				492DC2AA1AF8B8A50053F908 /* BigMLKitConnectorTests-Bridging-Header.h */,
+				49C5AA7E1AEF943900B81AA6 /* Supporting Files */,
+				493A27A71C0CCBA40087AEB7 /* BigMLKitConncetorCentroidTests.swift */,
 			);
 			path = BigMLKitConnectorTests;
 			sourceTree = "<group>";
@@ -154,9 +233,6 @@
 		49C5AA7E1AEF943900B81AA6 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				49962D301AFD15D600E2FA55 /* wines.csv */,
-				49962D311AFD15D600E2FA55 /* iris.csv */,
-				49962D321AFD15D600E2FA55 /* diab.csv */,
 				49C5AA7F1AEF943900B81AA6 /* Info.plist */,
 			);
 			name = "Supporting Files";
@@ -218,6 +294,7 @@
 		49C5AA651AEF943800B81AA6 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0700;
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "BigML Inc.";
 				TargetAttributes = {
@@ -259,10 +336,18 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				493A279A1C0709070087AEB7 /* spam-text.cluster in Resources */,
 				492DC2A31AF75AEB0053F908 /* credentials.plist in Resources */,
+				493A279E1C0709070087AEB7 /* testCluster.json in Resources */,
 				49962D331AFD15D600E2FA55 /* wines.csv in Resources */,
+				493A27981C0709070087AEB7 /* iris.ensemble in Resources */,
+				493A27AA1C0F1C9C0087AEB7 /* salaries.csv in Resources */,
 				49962D351AFD15D600E2FA55 /* diab.csv in Resources */,
+				493A279B1C0709070087AEB7 /* spam.cluster in Resources */,
+				493A279C1C0709070087AEB7 /* spam.model in Resources */,
+				493A27991C0709070087AEB7 /* iris.model in Resources */,
 				49962D341AFD15D600E2FA55 /* iris.csv in Resources */,
+				493A279D1C0709070087AEB7 /* testAnomaly.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,14 +358,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4910F6241BFDE3C30087E85A /* PredictionTree.swift in Sources */,
 				49E4B16A1B3449C3002929AC /* LLConnector.swift in Sources */,
 				49E4B16D1B3449C3002929AC /* ResourceStatus.swift in Sources */,
 				49E4B1691B3449C3002929AC /* FieldResource.swift in Sources */,
+				493A27AC1C0F4DFB0087AEB7 /* Ensemble.swift in Sources */,
+				493A278D1C04E4650087AEB7 /* Model.swift in Sources */,
 				49E4B16E1B3449C3002929AC /* ResourceTypes.swift in Sources */,
+				493A27A41C08AC740087AEB7 /* Cluster.swift in Sources */,
 				49E4B1681B3449C3002929AC /* Anomaly.swift in Sources */,
+				493A27A61C08C7910087AEB7 /* PredictionCentroid.swift in Sources */,
+				493A27AE1C104F850087AEB7 /* MultiModel.swift in Sources */,
 				49E4B16C1B3449C3002929AC /* Resource.swift in Sources */,
+				4910F6261BFF536B0087E85A /* TreePrediction.swift in Sources */,
+				493A27B01C1058490087AEB7 /* MultiVote.swift in Sources */,
 				49E4B1701B344A34002929AC /* BMLConnector.swift in Sources */,
 				49E4B16B1B3449C3002929AC /* Predicates.swift in Sources */,
+				4910F6281BFF6D3E0087E85A /* BigMLEnums.swift in Sources */,
 				49E4B16F1B3449C3002929AC /* Utils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -291,9 +385,12 @@
 			files = (
 				49E4B1761B344A41002929AC /* Resource.swift in Sources */,
 				492D8BAC1B176686002602B3 /* BMLKitConnectorPredicateTests.swift in Sources */,
+				493A27A81C0CCBA40087AEB7 /* BigMLKitConncetorCentroidTests.swift in Sources */,
 				49E4B1741B344A41002929AC /* LLConnector.swift in Sources */,
 				492DC2AD1AF8B8A60053F908 /* BMLSigHandler.c in Sources */,
 				49E4B1731B344A41002929AC /* FieldResource.swift in Sources */,
+				493A27A21C0871E70087AEB7 /* BigMLKitConnectorBaseTest.swift in Sources */,
+				493A278F1C0708360087AEB7 /* BigMLKitConnectorPredictionTests.swift in Sources */,
 				49C5AA811AEF943900B81AA6 /* BigMLKitConnectorTests.swift in Sources */,
 				49E4B1781B344A41002929AC /* ResourceTypes.swift in Sources */,
 				49E4B1711B344A41002929AC /* BMLConnector.swift in Sources */,

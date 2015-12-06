@@ -1,17 +1,23 @@
+// Copyright 2015-2016 BigML
 //
-//  LLConnector.swift
-//  BigMLX
+// Licensed under the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License. You may obtain
+// a copy of the License at
 //
-//  Created by sergio on 19/06/15.
-//  Copyright (c) 2015 sergio. All rights reserved.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
 
 import Foundation
 
 extension NSHTTPURLResponse {
     
     func isStrictlyValid() -> Bool {
-        return self.statusCode >= 200 && self.statusCode <= 202
+        return self.statusCode >= 200 && self.statusCode <= 206
     }
 }
 
@@ -43,7 +49,7 @@ struct BMLLLConnector {
     func optionsToString(options : [String : String]) {
         
         var result = ""
-        for (key, value) in options {
+        for (_, value) in options {
             if (value.characters.count > 0) {
                 let trimmedOption = value.substringWithRange(Range<String.Index>(start: value.startIndex.advancedBy(1), end: value.endIndex.advancedBy(-1)))
                 result = "\(result), \(trimmedOption)"
@@ -52,13 +58,18 @@ struct BMLLLConnector {
     }
     
     mutating func dataWithRequest(request : NSURLRequest, completion:(data : NSData!, error : NSError!) -> Void) {
-        
+
         let task = self.session.dataTaskWithRequest(request) { (data : NSData?, response : NSURLResponse?, error : NSError?) in
             var localError : NSError? = error;
             if (error == nil) {
-                if let response = response as? NSHTTPURLResponse where response.isStrictlyValid() {
+                if let response = response as? NSHTTPURLResponse {
+                    if !response.isStrictlyValid() {
+                        let url = response.URL?.absoluteString ?? ""
+                        let code = response.statusCode
+                        localError = NSError(info:"Bad response format for URL: \(url)", code:code)
+                    }
                 } else {
-                    let url = response?.URL ?? ""
+                    let url = response?.URL?.absoluteString ?? ""
                     localError = NSError(info:"Bad response format for URL: \(url)", code:-10001)
                 }
             }
@@ -186,18 +197,13 @@ struct BMLLLConnector {
         let request = NSMutableURLRequest(URL:url)
         let boundary = "---------------------------14737809831466499882746641449"
         
-        var error : NSError? = nil
         let bodyData : NSMutableData = NSMutableData()
         for (name, value) in body {
-            do {
-                let fieldData = try NSJSONSerialization.dataWithJSONObject(value, options: [])
-                if let value = NSString(data: fieldData, encoding:NSUTF8StringEncoding) {
-                    bodyData.appendString("\r\n--\(boundary)\r\n")
-                    bodyData.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n")
-                    bodyData.appendString("\r\n\(value)")
-                }
-            } catch let error1 as NSError {
-                error = error1
+            let fieldData = try? NSJSONSerialization.dataWithJSONObject(value, options: [])
+            if let fieldData = fieldData, value = NSString(data: fieldData, encoding:NSUTF8StringEncoding) {
+                bodyData.appendString("\r\n--\(boundary)\r\n")
+                bodyData.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n")
+                bodyData.appendString("\r\n\(value)")
             }
         }
         bodyData.appendString("\r\n--\(boundary)\r\n")

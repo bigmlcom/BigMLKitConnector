@@ -1,10 +1,16 @@
+// Copyright 2015-2016 BigML
 //
-//  Predicates.swift
-//  BigMLX
+// Licensed under the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License. You may obtain
+// a copy of the License at
 //
-//  Created by sergio on 19/06/15.
-//  Copyright (c) 2015 sergio. All rights reserved.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
 
 import Foundation
 
@@ -36,7 +42,7 @@ class Predicate {
         self.value = value
         self.term = term
         self.missing = false
-        if self.op =~ "\\*$" {
+        if self.op =~? "\\*$" {
             self.missing = true
             self.op = self.op.substringToIndex(self.op.startIndex.advancedBy(self.op.characters.count-1))
         }
@@ -53,7 +59,7 @@ class Predicate {
                     return true
                 }
                 if tokenMode == Predicate.TM_ALL {
-                    return term =~ Predicate.FULL_TERM_PATTERN
+                    return term =~? Predicate.FULL_TERM_PATTERN
                 }
         }
         return false
@@ -91,10 +97,10 @@ class Predicate {
                     return "\(name) \(relationLiteral) \(term) \(relationSuffix)\(relationMissing)"
                 }
                 if let value = self.value as? NSNull {
-                    let v = (self.op == "=") ? " is None " : " is not None "
-                    return "\(name) \(self.op) \(self.value) \(relationMissing)"
+                    let _ = (self.op == "=") ? " is None " : " is not None "
+                    return "\(name) \(self.op) \(value) \(relationMissing)"
                 } else {
-                    return "\(name) \(self.op) \(self.value) \(relationMissing)"
+                    return "\(name) \(self.op) \(value) \(relationMissing)"
                 }
         } else {
             return self.op
@@ -118,7 +124,7 @@ class Predicate {
             return self.fullTermCount(text, fullTerm: firstTerm, caseSensitive: caseSensitive)
         }
         if (tokenMode == Predicate.TM_ALL && forms.count == 1) {
-            if (firstTerm =~ Predicate.FULL_TERM_PATTERN) {
+            if (firstTerm =~? Predicate.FULL_TERM_PATTERN) {
                 return self.fullTermCount(text, fullTerm: firstTerm, caseSensitive: caseSensitive)
             }
         }
@@ -127,7 +133,7 @@ class Predicate {
     }
     
     func fullTermCount(text : String, fullTerm : String, caseSensitive : Bool) -> Int {
-        return (caseSensitive ? ((text == fullTerm) ? 1 : 0) : ((text =~ "/^\(fullTerm)$/i") ? 1 : 0));
+        return (caseSensitive ? ((text == fullTerm) ? 1 : 0) : ((text =~? "/^\(fullTerm)$/i") ? 1 : 0));
     }
 
     func tokenTermCount(text : String, forms : [String], caseSensitive : Bool) -> Int {
@@ -140,7 +146,6 @@ class Predicate {
     func eval(predicate : String, args : [String : AnyObject]) -> Bool {
         
         let p = NSPredicate(format:predicate)
-        //            println("PREDICATE \(p)")
         return p.evaluateWithObject(args)
     }
     
@@ -181,7 +186,7 @@ class Predicate {
         }
         if let inputValue : AnyObject = input[self.field] {
             return self.eval("ls \(self.op) rs",
-                args: ["ls" : input[self.field]!, "rs" : self.value])
+                args: ["ls" : inputValue, "rs" : self.value])
         }
         assert(false, "Should not be here: no input value provided!")
         return false
@@ -195,8 +200,7 @@ class Predicates {
     init(predicates : [AnyObject]) {
         self.predicates = predicates.map() {
             
-            //            println("PREDICATE: \($0)")
-            if let p = $0 as? String {
+            if let _ = $0 as? String {
                 return Predicate(op: "TRUE", field: "", value: 1, term: "")
             }
             if let p = $0 as? [String : AnyObject] {
@@ -208,7 +212,7 @@ class Predicates {
                     }
                 }
             }
-            assert(false, "COULD NOT CREATE PREDICATE")
+            assert(false, "Could not create predicate")
             return Predicate(op: "", field: "", value: "")
         }
     }
@@ -225,7 +229,6 @@ class Predicates {
         
         return predicates.reduce(true) {
             let result = $1.apply(input, fields: fields)
-            //            println("Applying predicate: \(result)")
             return $0 && result
         }
     }

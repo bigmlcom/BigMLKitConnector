@@ -23,7 +23,7 @@ class BigMLKitConnectorPredicateTests: XCTestCase {
     
     func testCreatePredicate1() {
         
-        let p = Predicate(op: "A", field: "F1", value: 1, term:"T")
+        _ = Predicate(op: "A", field: "F1", value: 1, term:"T")
         XCTAssert(true, "Pass")
     }
     
@@ -71,19 +71,19 @@ class BigMLKitConnectorPredicateTests: XCTestCase {
          
             var p = Predicate(op: ">=", field: "F1", value: 1, term: term)
             var rule = p.rule(fields)
-            println("Predicate: \(rule)")
+            print("Predicate: \(rule)")
             
             p = Predicate(op: ">", field: "F1", value: 1, term: term)
             rule = p.rule(fields)
-            println("Predicate: \(rule)")
+            print("Predicate: \(rule)")
             
             p = Predicate(op: ">", field: "F1", value: 0, term: term)
             rule = p.rule(fields)
-            println("Predicate: \(rule)")
+            print("Predicate: \(rule)")
             
             p = Predicate(op: "<=", field: "F1", value: 0, term: term)
             rule = p.rule(fields)
-            println("Predicate: \(rule)")
+            print("Predicate: \(rule)")
             
             return true
         }
@@ -159,7 +159,7 @@ class BigMLKitConnectorPredicateTests: XCTestCase {
             ["op" : ">", "field" : "F2", "value" : 0, "term" : term2],
             ["op" : "<=", "field" : "F2", "value" : 0, "term" : term2]])
         
-        println(ps.rule(["F1" : ["a" : "b", "name" : "F1"],
+        print(ps.rule(["F1" : ["a" : "b", "name" : "F1"],
             "F2" : ["name": "f2", "term_analysis" : [ "token_mode" : "all" ]]]))
     }
 }

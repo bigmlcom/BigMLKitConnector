@@ -1,10 +1,16 @@
+// Copyright 2015-2016 BigML
 //
-//  BMLConnector.swift
-//  BigMLKitConnector
+// Licensed under the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License. You may obtain
+// a copy of the License at
 //
-//  Created by sergio on 28/04/15.
-//  Copyright (c) 2015 BigML Inc. All rights reserved.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
 
 import Foundation
 import JavaScriptCore
@@ -19,6 +25,14 @@ public class BMLConnector : NSObject {
         super.init()
     }
     
+    func serverUrl() -> String {
+        
+        if let url = NSUserDefaults.standardUserDefaults().stringForKey("bigMLAPIServerUrl") {
+            return url
+        }
+        return "https://bigml.io"
+    }
+    
     func authenticatedUrl(uri : String, arguments : [String : AnyObject]) -> NSURL? {
         
         var args = ""
@@ -26,7 +40,8 @@ public class BMLConnector : NSObject {
             args = "\(key)=\(value);\(args)"
         }
         let modeSelector = self.connector.mode == BMLMode.Development ? "dev/" : ""
-        return NSURL(string:"https://bigml.io/\(modeSelector)andromeda/\(uri)?\(args)\(self.connector.authToken)")
+        let serverUrl = self.serverUrl()
+        return NSURL(string:"\(serverUrl)/\(modeSelector)andromeda/\(uri)?\(args)\(self.connector.authToken)")
     }
     
     public func createResource(
@@ -34,18 +49,20 @@ public class BMLConnector : NSObject {
         name: String,
         options: [String : AnyObject],
         from: BMLResource,
-        completion:(resource : BMLResource?, error : NSError?) -> Void) {
+        completion:(resource : BMLResource?, error : NSError?) -> Void) -> BMLMinimalResource {
 
+            let resource = BMLMinimalResource(name: name, fullUuid: "\(type.stringValue())/", definition: [:])
+            
             if let url = self.authenticatedUrl(type.stringValue(), arguments:[:]) {
                 
                 let completionBlock : (result : [String : AnyObject], error : NSError?) -> Void = { (result, error) in
                     
-                    var resource : BMLResource?
                     var localError = error
                     if (localError == nil) {
                         if let fullUuid = result["resource"] as? String {
-                            resource = BMLMinimalResource(name: name, fullUuid: fullUuid, definition: [:])
-                            self.trackResourceStatus(resource!, completion: completion)
+                            let components = fullUuid.characters.split {$0 == "/"}.map { String($0) }
+                            resource.uuid = components[1]
+                            self.trackResourceStatus(resource, completion: completion)
                         } else {
                             localError = NSError(info: "Bad response format", code: -10001)
                         }
@@ -69,13 +86,14 @@ public class BMLConnector : NSObject {
 
                     var body = options
                     body.updateValue(name, forKey: "name")
-                    if (from.type != BMLResourceType.Project) {
+                    if (from.type != BMLResourceType.Project && from.type != BMLResourceType.WhizzmlSource) {
                         body.updateValue(from.fullUuid, forKey: from.type.stringValue())
                     }
 
                     self.connector.post(url, body: body, completion: completionBlock)
                 }
             }
+        return resource
     }
 
     public func listResources(
@@ -93,13 +111,13 @@ public class BMLConnector : NSObject {
                             jsonResources = jsonDict["objects"] as? [AnyObject] {
 
                             resources = jsonResources.map {
-                                
-                                if let type = $0["resource"] as? String,
-                                    resourceDict = $0 as? [String : AnyObject] {
+                                if let resourceDict = $0 as? [String : AnyObject],
+                                    resource = resourceDict["resource"] as? String {
                                     
-                                    return BMLMinimalResource(name: $0["name"] as! String,
-                                        fullUuid:$0["resource"] as! String,
-                                        definition:resourceDict)
+                                    return BMLMinimalResource(
+                                        name: (resourceDict["name"] as? String ?? "Unnamed resource"),
+                                        fullUuid: resource,
+                                        definition: resourceDict)
                                 } else {
                                     localError = NSError(info:"Bad response format", code:-10001)
                                     return BMLMinimalResource(name: "Wrong Resource",
@@ -155,8 +173,12 @@ public class BMLConnector : NSObject {
                     if let jsonDict = jsonObject as? [String : AnyObject],
                         code = jsonDict["code"] as? Int {
                         resourceDict = jsonDict
-                            if code != 200 {
-                                localError = NSError(info:"No data retrieved", code:-10002)
+                            //-- Workaround current REST API returning 500 for resources that were not created correctly
+                            if code == 500 && resourceDict["resource_uri"] != nil {
+                                code == 200
+                            }
+                            if code != 200 && code != 500 {
+                                localError = NSError(info:"No data retrieved. Code: \(code)", code:-10002)
                             }
                     } else {
                         localError = NSError(info:"Bad response format", code:-10001)
@@ -178,9 +200,9 @@ public class BMLConnector : NSObject {
                 if let code = resourceDict["code"] as? Int {
                     
                     if (code == 200) {
-                        if let type = resourceDict["resource"] as? String {
+                        if let fullUuid = resourceDict["resource"] as? String {
                             resource = BMLMinimalResource(name: resourceDict["name"] as! String,
-                                fullUuid: resourceDict["resource"] as! String,
+                                fullUuid: fullUuid,
                                 definition: resourceDict)
                         }
                     } else {
@@ -208,7 +230,6 @@ public class BMLConnector : NSObject {
                     if let statusDict = resourceDict["status"] as? [String : AnyObject],
                         statusCodeInt = statusDict["code"] as? Int {
                         let statusCode = BMLResourceStatus(integerLiteral: statusCodeInt)
-                        print("Monitoring status \(statusCode.rawValue)")
                         if (statusCode < BMLResourceStatus.Waiting) {
                             if let code = statusDict["error"] as? Int {
                                 localError = NSError(status: statusDict, code: code)
@@ -234,7 +255,7 @@ public class BMLConnector : NSObject {
                     }
                 }
                 if (localError != nil) {
-                    print("Tracking error \(localError)")
+                    print("Tracking error \(localError)", terminator: "")
                     resource.status = BMLResourceStatus.Failed
                     completion(resource: nil, error: localError)
                 }
