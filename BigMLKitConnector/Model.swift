@@ -27,9 +27,9 @@ public class Model : FieldedResource {
 //    let terms : [String : AnyObject]
     var treeInfo : [String : AnyObject]
     
-    let model : [String : Any]
+    let model : [String : AnyObject]
     
-    required public init(jsonModel : [String : Any]) {
+    required public init(jsonModel : [String : AnyObject]) {
         
 //        let status = jsonModel["status"] as? [String : AnyObject] ?? [:]
 //        assert(status["code"] as? Int == 5, "Model is not ready")

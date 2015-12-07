@@ -10,6 +10,7 @@
 		4910F6241BFDE3C30087E85A /* PredictionTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4910F6231BFDE3C30087E85A /* PredictionTree.swift */; settings = {ASSET_TAGS = (); }; };
 		4910F6261BFF536B0087E85A /* TreePrediction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4910F6251BFF536B0087E85A /* TreePrediction.swift */; settings = {ASSET_TAGS = (); }; };
 		4910F6281BFF6D3E0087E85A /* BigMLEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4910F6271BFF6D3E0087E85A /* BigMLEnums.swift */; settings = {ASSET_TAGS = (); }; };
+		4921146D1C1578CC00571BFA /* BigMLKitConnectorEnsembleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4921146C1C1578CC00571BFA /* BigMLKitConnectorEnsembleTests.swift */; settings = {ASSET_TAGS = (); }; };
 		492D8BAC1B176686002602B3 /* BMLKitConnectorPredicateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492D8BAB1B176686002602B3 /* BMLKitConnectorPredicateTests.swift */; };
 		492DC2A31AF75AEB0053F908 /* credentials.plist in Resources */ = {isa = PBXBuildFile; fileRef = 492DC2A21AF75AEB0053F908 /* credentials.plist */; };
 		492DC2AD1AF8B8A60053F908 /* BMLSigHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 492DC2AB1AF8B8A60053F908 /* BMLSigHandler.c */; };
@@ -70,6 +71,7 @@
 		4910F6231BFDE3C30087E85A /* PredictionTree.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PredictionTree.swift; sourceTree = "<group>"; };
 		4910F6251BFF536B0087E85A /* TreePrediction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TreePrediction.swift; sourceTree = "<group>"; };
 		4910F6271BFF6D3E0087E85A /* BigMLEnums.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigMLEnums.swift; sourceTree = "<group>"; };
+		4921146C1C1578CC00571BFA /* BigMLKitConnectorEnsembleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigMLKitConnectorEnsembleTests.swift; sourceTree = "<group>"; };
 		492D8BAB1B176686002602B3 /* BMLKitConnectorPredicateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BMLKitConnectorPredicateTests.swift; sourceTree = "<group>"; };
 		492DC2A21AF75AEB0053F908 /* credentials.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = credentials.plist; sourceTree = "<group>"; };
 		492DC2AA1AF8B8A50053F908 /* BigMLKitConnectorTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BigMLKitConnectorTests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -226,6 +228,7 @@
 				492DC2AA1AF8B8A50053F908 /* BigMLKitConnectorTests-Bridging-Header.h */,
 				49C5AA7E1AEF943900B81AA6 /* Supporting Files */,
 				493A27A71C0CCBA40087AEB7 /* BigMLKitConncetorCentroidTests.swift */,
+				4921146C1C1578CC00571BFA /* BigMLKitConnectorEnsembleTests.swift */,
 			);
 			path = BigMLKitConnectorTests;
 			sourceTree = "<group>";
@@ -394,6 +397,7 @@
 				49C5AA811AEF943900B81AA6 /* BigMLKitConnectorTests.swift in Sources */,
 				49E4B1781B344A41002929AC /* ResourceTypes.swift in Sources */,
 				49E4B1711B344A41002929AC /* BMLConnector.swift in Sources */,
+				4921146D1C1578CC00571BFA /* BigMLKitConnectorEnsembleTests.swift in Sources */,
 				49E4B1771B344A41002929AC /* ResourceStatus.swift in Sources */,
 				49E4B1721B344A41002929AC /* Anomaly.swift in Sources */,
 				49E4B1751B344A41002929AC /* Predicates.swift in Sources */,
