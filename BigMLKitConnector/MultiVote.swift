@@ -393,7 +393,7 @@ class MultiVote {
     *        that will be used to weight confidence
     */
     func weightedConfidence(combinedPrediction : AnyObject,
-        weightLabel : String) -> [String : AnyObject] {
+        weightLabel : String) -> [String : Any] {
             
             var finalConfidence = 1.0
             var weight = 1.0
@@ -468,7 +468,7 @@ class MultiVote {
     * average of the confidences of the votes for the combined
     * prediction) will also be given.
     */
-    func combineCategorical(weightLabel : String, confidence : Bool) -> [String : AnyObject] {
+    func combineCategorical(weightLabel : String, confidence : Bool) -> [String : Any] {
         
         var weight = 0.0
         var mode : [String : [String : Any]] = [:]
@@ -501,18 +501,18 @@ class MultiVote {
         
         let predictionName = mode.sort{
             
-            let d0 : [String : AnyObject] = $0.1 as! [String : AnyObject]
-            let d1 : [String : AnyObject] = $1.1 as! [String : AnyObject]
-            
-            let w0 = d0["count"] as? Double ?? Double.NaN
-            let w1 = d1["count"] as? Double ?? Double.NaN
-            let order0 = d0["order"] as? Int ?? 0
-            let order1 = d1["order"] as? Int ?? 0
+//            let d0 = $0.1
+//            let d1 = $1.1
+//            
+            let w0 = $0.1["count"] as? Double ?? Double.NaN
+            let w1 = $1.1["count"] as? Double ?? Double.NaN
+            let order0 = $0.1["order"] as? Int ?? 0
+            let order1 = $1.1["order"] as? Int ?? 0
             return w0 > w1 ? false : (w0 < w1 ? true : order0 < order1 ? false : true)
             }.first?.0 ?? ""
         
-        var result : [String : AnyObject] = [:]
-        result.updateValue(predictionName, forKey: "prediciton")
+        var result : [String : Any] = [:]
+        result.updateValue(predictionName, forKey: "prediction")
         
         if (confidence) {
             if (self.predictions.first?["confidence"] != nil) {

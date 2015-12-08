@@ -65,6 +65,7 @@ struct BMLLLConnector {
                 if let response = response as? NSHTTPURLResponse {
                     if !response.isStrictlyValid() {
                         let url = response.URL?.absoluteString ?? ""
+                        print("ERROR: \(url)")
                         let code = response.statusCode
                         localError = NSError(info:"Bad response format for URL: \(url)", code:code)
                     }
